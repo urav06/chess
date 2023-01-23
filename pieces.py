@@ -39,10 +39,6 @@ class Piece(ABC):
         self.color = color
         self.loc = location
 
-    @abstractmethod
-    def get_line_of_sight(self) -> list[Location]:
-        pass
-    
     @staticmethod
     def trim_los_to_board(los):
         valid_range = range(0,config.BOARD_SIZE)
@@ -53,26 +49,25 @@ class BoundMoveMixin:
     PARALLEL_DIRECTIONS = [(-1,0), (0,-1), (1,0), (0,1)]
     DIAGONAL_DIRECTIONS = [(-1,-1), (1,-1), (-1,1), (1,1)]
 
-    def _get_bounds(self: Union[Piece, 'BoundMoveMixin'], board):
-        directions = []
-        if BoundMoveVariationFlag.PARALLEL in self.bound_move_variation:
-            directions += self.PARALLEL_DIRECTIONS
-        if BoundMoveVariationFlag.DIAGONAL in self.bound_move_variation:
-            directions += self.DIAGONAL_DIRECTIONS
-        bounds = [None]*len(directions)
-        for i, direction in enumerate(directions):
+    def generate_moves(self: Union[Piece, 'BoundMoveMixin'], board):
+        can_move_parallelly = BoundMoveVariationFlag.PARALLEL in self.bound_move_variation
+        can_move_diagonally = BoundMoveVariationFlag.DIAGONAL in self.bound_move_variation
+        directions = (
+            (self.PARALLEL_DIRECTIONS if can_move_parallelly else [])
+            +(self.DIAGONAL_DIRECTIONS if can_move_diagonally else [])
+        )
+        locs = []
+        for direction in directions:
             step = 1
-            bound = self.loc
             while (
-                (b_i := self.loc.i+(direction[0]*step)) in (valid_range := range(0, config.BOARD_SIZE))
-                and (b_j := self.loc.i+(direction[1]*step)) in valid_range
-                and board.board[b_i][b_j] == None
+                (i_hat := self.loc.i+(direction[0]*step)) in (valid_range := range(0, config.BOARD_SIZE))
+                and (j_hat := self.loc.i+(direction[1]*step)) in valid_range
+                and board.board[i_hat][j_hat] == None
             ):
-            #TODO: Optimize / Readibility
-                step += 1
-                bound = Location(self.loc.i+(direction[0]*step), self.loc.j+(direction[1]*step))
-            bounds[i] = bound
-        return bounds
+                #TODO: Optimize / Readibility
+                step+=1
+                locs.append(Location(i_hat, j_hat))
+        return locs
 
 
 class StepMoveMixin:
@@ -115,6 +110,21 @@ class Bishop(Piece, BoundMoveMixin):
     def get_line_of_sight(self) -> list[Location]:
         return []
 
+class Rook(Piece, BoundMoveMixin):
+
+    bound_move_variation = BoundMoveVariationFlag.PARALLEL
+
+    def get_line_of_sight(self) -> list[Location]:
+        return []
+
+class Queen(Piece, BoundMoveMixin):
+
+    bound_move_variation = BoundMoveVariationFlag.PARALLEL | BoundMoveVariationFlag.DIAGONAL
+
+    def get_line_of_sight(self) -> list[Location]:
+        return []
+
 if __name__ == "__main__":
+    some_bishop = Bishop(Color.BLACK, Location(0,0))
     some_pawn = Pawn(Color.WHITE, Location(1,0))
 
