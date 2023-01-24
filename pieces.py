@@ -11,6 +11,9 @@ class Color(Enum):
     WHITE = "white"
 
 class BoundMoveVariationFlag(Flag):
+    """
+    Denotes parallel movement & diagonal movement
+    """
     PARALLEL = auto()
     DIAGONAL = auto()
 
@@ -28,8 +31,9 @@ class Location():
         return f"({self.i},{self.j})"
 
 class Piece(ABC):
-
-    bound_move_variation = BoundMoveVariationFlag(0)
+    """
+    Abstract class to subclass all the pieces from.
+    """
 
     def __init__(self, color: Color, location: Location) -> None:
         if (not isinstance(color, Color)) and (color not in (Color.BLACK, Color.WHITE)):
@@ -38,6 +42,7 @@ class Piece(ABC):
             raise TypeError(f"Invalid location: {location}")
         self.color = color
         self.loc = location
+        self.has_moved = False
 
     @staticmethod
     def trim_los_to_board(los):
@@ -45,11 +50,20 @@ class Piece(ABC):
         return list(filter(lambda x: x.i in valid_range and x.j in valid_range, los))
 
 class BoundMoveMixin:
+    """
+    Mixin Class to generate moves for pieces that move in straight lines.
+    Applicable Pieces: Rook, Bishop, Queen.
+    """
 
     PARALLEL_DIRECTIONS = [(-1,0), (0,-1), (1,0), (0,1)]
     DIAGONAL_DIRECTIONS = [(-1,-1), (1,-1), (-1,1), (1,1)]
+    bound_move_variation = BoundMoveVariationFlag(0)
+    bound_move_step_limit = 0
 
     def generate_moves(self: Union[Piece, 'BoundMoveMixin'], board):
+        """
+        Generates a list of moves physically possible for the piece on the given board.
+        """
         can_move_parallelly = BoundMoveVariationFlag.PARALLEL in self.bound_move_variation
         can_move_diagonally = BoundMoveVariationFlag.DIAGONAL in self.bound_move_variation
         directions = (
@@ -60,34 +74,31 @@ class BoundMoveMixin:
         for direction in directions:
             step = 1
             while (
-                (i_hat := self.loc.i+(direction[0]*step)) in (valid_range := range(0, config.BOARD_SIZE))
+                step <= self.bound_move_step_limit
+                and (i_hat := self.loc.i+(direction[0]*step)) in (valid_range := range(0, config.BOARD_SIZE))
                 and (j_hat := self.loc.j+(direction[1]*step)) in valid_range
-                and board.board[i_hat][j_hat] == None
+                and board.board[i_hat][j_hat] is None
             ):
-                #TODO: Optimize / Readibility
+                #TODO: Implement Attack + Optimize / Readibility
                 step+=1
                 locs.append(Location(i_hat, j_hat))
         return locs
 
 
-class StepMoveMixin:
-    pass
-
 class Pawn(Piece):
-    def get_line_of_sight(self) -> list[Location]:
+    def generate_moves(self) -> list[Location]:
+        """
+        Generates a list of moves physically possible for the pawn on the given board.
+        """
         los = []
-        is_first_move = (
-            (self.color == Color.WHITE and self.loc.i == 1)
-            or
-            (self.color == Color.BLACK and self.loc.i == 6)
-        )
+        #TODO: Capure/Attack Logic
         if self.color == Color.WHITE:
             los = [Location(self.loc.i+1, self.loc.j+d) for d in (-1, 0 , 1)]
-            if is_first_move:
+            if not self.has_moved:
                 los.append(Location(self.loc.i+2, self.loc.j))
         if self.color == Color.BLACK:
             los = [Location(self.loc.i-1, self.loc.j+d) for d in (-1, 0 , 1)]
-            if is_first_move:
+            if not self.has_moved:
                 los.append(Location(self.loc.i-2, self.loc.j))
         return self.trim_los_to_board(los)
 
@@ -95,13 +106,20 @@ class Pawn(Piece):
         return config.UNICODE_PAWN[self.color.value]
 
 class Knight(Piece):
-    def get_line_of_sight(self) -> list[Location]:
-        los = []
+    def generate_moves(self) -> list[Location]:
+        """
+        Generates a list of moves physically possible for the knight on the given board.
+        """
+        locs = []
         for delta_i in [-2, -1, 1, 2]:
             for delta_j in [-2, -1, 1, 2]:
-                if abs(delta_i) != abs(delta_j):
-                    los.append(Location(self.loc.i+delta_i, self.loc.j+delta_j))
-        return self.trim_los_to_board(los)
+                if (
+                    abs(delta_i) != abs(delta_j)
+                    and (i_hat := self.loc.i+delta_i) in (valid_range := range(0, config.BOARD_SIZE))
+                    and (j_hat :=  self.loc.j+delta_j) in valid_range
+                ):
+                    locs.append(Location(i_hat, j_hat))
+        return locs
 
     def __str__(self) -> str:
         return config.UNICODE_KNIGHT[self.color.value]
@@ -109,9 +127,7 @@ class Knight(Piece):
 class Bishop(Piece, BoundMoveMixin):
 
     bound_move_variation = BoundMoveVariationFlag.DIAGONAL
-
-    def get_line_of_sight(self) -> list[Location]:
-        return []
+    bound_move_step_limit = float('inf')
     
     def __str__(self) -> str:
         return config.UNICODE_BISHOP[self.color.value]
@@ -119,9 +135,7 @@ class Bishop(Piece, BoundMoveMixin):
 class Rook(Piece, BoundMoveMixin):
 
     bound_move_variation = BoundMoveVariationFlag.PARALLEL
-
-    def get_line_of_sight(self) -> list[Location]:
-        return []
+    bound_move_step_limit = float('inf')
 
     def __str__(self) -> str:
         return config.UNICODE_ROOK[self.color.value]
@@ -129,14 +143,21 @@ class Rook(Piece, BoundMoveMixin):
 class Queen(Piece, BoundMoveMixin):
 
     bound_move_variation = BoundMoveVariationFlag.PARALLEL | BoundMoveVariationFlag.DIAGONAL
-
-    def get_line_of_sight(self) -> list[Location]:
-        return []
+    bound_move_step_limit = float('inf')
 
     def __str__(self) -> str:
         return config.UNICODE_QUEEN[self.color.value]
 
+
+class King(Piece, BoundMoveMixin):
+
+    bound_move_variation = BoundMoveVariationFlag.PARALLEL | BoundMoveVariationFlag.DIAGONAL
+    bound_move_step_limit = 1
+
+    def __str__(self) -> str:
+        return config.UNICODE_KING[self.color.value]
+
+
 if __name__ == "__main__":
     some_bishop = Bishop(Color.BLACK, Location(0,0))
     some_pawn = Pawn(Color.WHITE, Location(1,0))
-
