@@ -35,8 +35,10 @@ class Piece(ABC):
     Abstract class to subclass all the pieces from.
     """
 
+    name = ""
+
     def __init__(self, color: Color, location: Location) -> None:
-        if (not isinstance(color, Color)) and (color not in (Color.BLACK, Color.WHITE)):
+        if (not isinstance(color, Color)) and (color not in (Color.BLACK.value, Color.WHITE.value)):
             raise TypeError(f"Invalid color: {color}")
         if (not isinstance(location, Location)):
             raise TypeError(f"Invalid location: {location}")
@@ -48,6 +50,13 @@ class Piece(ABC):
     def trim_los_to_board(los):
         valid_range = range(0,config.BOARD_SIZE)
         return list(filter(lambda x: x.i in valid_range and x.j in valid_range, los))
+
+    @abstractmethod
+    def generate_moves(self, board):
+        pass
+
+    def __str__(self) -> str:
+        return config.UNICODE_PIECES[self.name][self.color.value]
 
 class BoundMoveMixin:
     """
@@ -86,7 +95,10 @@ class BoundMoveMixin:
 
 
 class Pawn(Piece):
-    def generate_moves(self) -> list[Location]:
+
+    name = "knight"
+
+    def generate_moves(self, board) -> list[Location]:
         """
         Generates a list of moves physically possible for the pawn on the given board.
         """
@@ -102,10 +114,10 @@ class Pawn(Piece):
                 los.append(Location(self.loc.i-2, self.loc.j))
         return self.trim_los_to_board(los)
 
-    def __str__(self) -> str:
-        return config.UNICODE_PAWN[self.color.value]
-
 class Knight(Piece):
+
+    name = "knight"
+
     def generate_moves(self) -> list[Location]:
         """
         Generates a list of moves physically possible for the knight on the given board.
@@ -121,41 +133,33 @@ class Knight(Piece):
                     locs.append(Location(i_hat, j_hat))
         return locs
 
-    def __str__(self) -> str:
-        return config.UNICODE_KNIGHT[self.color.value]
 
-class Bishop(Piece, BoundMoveMixin):
+class Bishop(BoundMoveMixin, Piece):
 
     bound_move_variation = BoundMoveVariationFlag.DIAGONAL
     bound_move_step_limit = float('inf')
-    
-    def __str__(self) -> str:
-        return config.UNICODE_BISHOP[self.color.value]
+    name = "bishop"
 
-class Rook(Piece, BoundMoveMixin):
+
+class Rook(BoundMoveMixin, Piece):
 
     bound_move_variation = BoundMoveVariationFlag.PARALLEL
     bound_move_step_limit = float('inf')
+    name = "rook"
 
-    def __str__(self) -> str:
-        return config.UNICODE_ROOK[self.color.value]
 
-class Queen(Piece, BoundMoveMixin):
+class Queen(BoundMoveMixin, Piece):
 
     bound_move_variation = BoundMoveVariationFlag.PARALLEL | BoundMoveVariationFlag.DIAGONAL
     bound_move_step_limit = float('inf')
-
-    def __str__(self) -> str:
-        return config.UNICODE_QUEEN[self.color.value]
+    name = "queen"
 
 
-class King(Piece, BoundMoveMixin):
+class King(BoundMoveMixin, Piece):
 
     bound_move_variation = BoundMoveVariationFlag.PARALLEL | BoundMoveVariationFlag.DIAGONAL
     bound_move_step_limit = 1
-
-    def __str__(self) -> str:
-        return config.UNICODE_KING[self.color.value]
+    name = "king"
 
 
 if __name__ == "__main__":

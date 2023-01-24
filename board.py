@@ -1,10 +1,15 @@
-from pieces import Pawn, Color, Location
+from pieces import Piece, Pawn, Color, Location
 from config import BOARD_SIZE, UNICODE_SQUARE
 
 class Board:
     SIZE = BOARD_SIZE
     def __init__(self) -> None:
         self.board = [[None for _ in range(self.SIZE)] for __ in range(self.SIZE)]
+
+    def place_new_piece(self, piece_type: type[Piece], color: Color, location: Location) -> Piece:
+        new_pice = piece_type(color=color, location=location)
+        self.board[location.i][location.j] = new_pice
+        return new_pice
 
     def visualize(self) -> None:
         visual = ""
@@ -16,8 +21,3 @@ class Board:
                 visual += f" {piece} " if piece else f" {square} "
             visual += "\n"
         print(visual)
-
-if __name__ == "__main__":
-    board = Board()
-    board.board[1][0] = Pawn(Color.BLACK, Location(1, 0))
-    board.visualize()

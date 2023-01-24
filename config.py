@@ -1,8 +1,10 @@
 BOARD_SIZE = 8
-UNICODE_PAWN = dict(black="♟︎",white="♙")
-UNICODE_KNIGHT = dict(black="♞",white="♘")
-UNICODE_BISHOP = dict(black="♝",white="♗")
-UNICODE_ROOK = dict(black="♜",white="♖")
-UNICODE_QUEEN = dict(black="♛",white="♕")
-UNICODE_KING = dict(black="♚",white="♔")
+UNICODE_PIECES = dict(
+    pawn=dict(black="♟︎",white="♙"),
+    knight=dict(black="♞",white="♘"),
+    bishop=dict(black="♝",white="♗"),
+    rook=dict(black="♜",white="♖"),
+    queen=dict(black="♛",white="♕"),
+    king=dict(black="♚",white="♔"),
+)
 UNICODE_SQUARE = dict(black="◼", white="◻")
