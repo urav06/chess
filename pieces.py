@@ -61,7 +61,7 @@ class BoundMoveMixin:
             step = 1
             while (
                 (i_hat := self.loc.i+(direction[0]*step)) in (valid_range := range(0, config.BOARD_SIZE))
-                and (j_hat := self.loc.i+(direction[1]*step)) in valid_range
+                and (j_hat := self.loc.j+(direction[1]*step)) in valid_range
                 and board.board[i_hat][j_hat] == None
             ):
                 #TODO: Optimize / Readibility
@@ -90,9 +90,9 @@ class Pawn(Piece):
             if is_first_move:
                 los.append(Location(self.loc.i-2, self.loc.j))
         return self.trim_los_to_board(los)
-    
+
     def __str__(self) -> str:
-        return config.UNICODE_PAWN[self.color]
+        return config.UNICODE_PAWN[self.color.value]
 
 class Knight(Piece):
     def get_line_of_sight(self) -> list[Location]:
@@ -103,12 +103,18 @@ class Knight(Piece):
                     los.append(Location(self.loc.i+delta_i, self.loc.j+delta_j))
         return self.trim_los_to_board(los)
 
+    def __str__(self) -> str:
+        return config.UNICODE_KNIGHT[self.color.value]
+
 class Bishop(Piece, BoundMoveMixin):
 
     bound_move_variation = BoundMoveVariationFlag.DIAGONAL
 
     def get_line_of_sight(self) -> list[Location]:
         return []
+    
+    def __str__(self) -> str:
+        return config.UNICODE_BISHOP[self.color.value]
 
 class Rook(Piece, BoundMoveMixin):
 
@@ -117,12 +123,18 @@ class Rook(Piece, BoundMoveMixin):
     def get_line_of_sight(self) -> list[Location]:
         return []
 
+    def __str__(self) -> str:
+        return config.UNICODE_ROOK[self.color.value]
+
 class Queen(Piece, BoundMoveMixin):
 
     bound_move_variation = BoundMoveVariationFlag.PARALLEL | BoundMoveVariationFlag.DIAGONAL
 
     def get_line_of_sight(self) -> list[Location]:
         return []
+
+    def __str__(self) -> str:
+        return config.UNICODE_QUEEN[self.color.value]
 
 if __name__ == "__main__":
     some_bishop = Bishop(Color.BLACK, Location(0,0))

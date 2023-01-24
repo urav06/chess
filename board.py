@@ -1,5 +1,5 @@
 from pieces import Pawn, Color, Location
-from config import BOARD_SIZE
+from config import BOARD_SIZE, UNICODE_SQUARE
 
 class Board:
     SIZE = BOARD_SIZE
@@ -11,7 +11,9 @@ class Board:
         for i in range(self.SIZE):
             for j in range(self.SIZE):
                 piece = self.board[i][j]
-                visual += f"{piece} " if piece else " _ "
+                is_black_square = (i%2==0)^(j%2==0)
+                square = UNICODE_SQUARE[Color.BLACK.value] if is_black_square else UNICODE_SQUARE[Color.WHITE.value]
+                visual += f" {piece} " if piece else f" {square} "
             visual += "\n"
         print(visual)
 
