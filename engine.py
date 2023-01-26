@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from enum import Enum, Flag, auto
-from typing import ClassVar, Union
+from typing import ClassVar, Union, NamedTuple, Optional
 
 from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
 
@@ -19,14 +19,23 @@ class BoundMoveVariationFlag(Flag):
     DIAGONAL = auto()
 
 
-class Location():
+class MoveType(Enum):
+    PASSING = auto()
+    CAPTURE = auto()
+    CASTLE = auto()
+
+
+class Location(NamedTuple):
     """
     i: Vertical. Denoting Rank. 0 to 7
     j: Horizontal. Denoting File. 0 to 7
     """
-    def __init__(self, i: int, j: int) -> None:
-        self.i = i
-        self.j = j
+    i: int
+    j: int
+
+    def is_in_bounds(self) -> bool:
+        valid_range = range(0, BOARD_SIZE)
+        return self.i in valid_range and self.j in valid_range
 
     def __repr__(self) -> str:
         return f"({self.i},{self.j})"
@@ -48,13 +57,16 @@ class Piece(ABC):
         self.loc: Location = location
         self.has_moved: bool = False
 
+    def is_on(self, board: Board) -> bool:
+        return board.board[self.loc.i][self.loc.j] == self
+
     @staticmethod
     def trim_los_to_board(los: list[Location]) -> list[Location]:
         valid_range = range(0, BOARD_SIZE)
         return list(filter(lambda x: x.i in valid_range and x.j in valid_range, los))
 
     @abstractmethod
-    def generate_moves(self, board: Board) -> list[Location]:
+    def generate_moves(self, board: Board) -> list[Move]:
         pass
 
     def __str__(self) -> str:
@@ -71,6 +83,8 @@ class Board:
         )
 
     def place_new_piece(self, piece_type: type[Piece], color: Color, location: Location) -> Piece:
+        if (existing_piece := self.board[location.i][location.j]) is not None:
+            raise ValueError(f"A {existing_piece.name} already exists at {location}")
         new_pice: Piece = piece_type(color=color, location=location)
         self.board[location.i][location.j] = new_pice
         return new_pice
@@ -87,6 +101,41 @@ class Board:
         print(visual)
 
 
+class Move:
+    def __init__(self, piece: Piece, type: MoveType, loc: Location, target_piece: Union[Piece, None] = None) -> None:
+        if type in (MoveType.CAPTURE, MoveType.CASTLE) and target_piece is None:
+            raise ValueError(f"Target piece not provided for {MoveType.CASTLE.name} move")
+
+        if type == MoveType.CAPTURE and target_piece and loc != target_piece.loc:
+            raise ValueError(f"Target {target_piece.name} not at the location. {loc} != {target_piece.loc}")
+
+        self.piece = piece
+        self.type = type
+        self.loc = loc
+        self.target_piece = target_piece
+
+    def execute(self, board: Board) -> None:
+        if not self.piece.is_on(board):
+            raise ValueError(f"This {self.piece.color.value} {self.piece.name} is not on the board: {board}")
+        if self.target_piece and not self.target_piece.is_on(board):
+            raise ValueError(f"This target {self.piece.color.value} {self.piece.name} is not on the board: {board}")
+
+        match self.type:
+            case MoveType.PASSING:
+                board.board[self.piece.loc.i][self.piece.loc.j] = None
+                board.board[self.loc.i][self.loc.j] = self.piece
+                self.piece.loc = self.loc
+
+            case MoveType.CAPTURE:
+                pass
+            case MoveType.CASTLE:
+                pass
+            case _:
+                raise ValueError(f"Invalid Move Type: {self.type}")
+
+        self.piece.has_moved = True
+
+
 class BoundMoveMixin:
     """
     Mixin Class to generate moves for pieces that move in straight lines.
@@ -98,8 +147,9 @@ class BoundMoveMixin:
     bound_move_variation = BoundMoveVariationFlag(0)
     bound_move_step_limit: Union[int, float] = 0
     loc: Location
+    color: Color
 
-    def generate_moves(self, board: Board) -> list[Location]:
+    def generate_moves(self, board: Board) -> list[Move]:
         """
         Generates a list of moves physically possible for the piece on the given board.
         """
@@ -109,60 +159,88 @@ class BoundMoveMixin:
             (self.PARALLEL_DIRECTIONS if can_move_parallelly else [])
             + (self.DIAGONAL_DIRECTIONS if can_move_diagonally else [])
         )
-        locs = []
+        moves = []
         for direction in directions:
             step = 1
             while (
                 step <= self.bound_move_step_limit
                 and (i_hat := self.loc.i+(direction[0]*step)) in (valid_range := range(0, BOARD_SIZE))
                 and (j_hat := self.loc.j+(direction[1]*step)) in valid_range
-                and board.board[i_hat][j_hat] is None
             ):
-                # TODO: Implement Attack + Optimize / Readibility
-                step += 1
-                locs.append(Location(i_hat, j_hat))
-        return locs
+                target: Union[Piece, None] = board.board[i_hat][j_hat]
+                if target is None:
+                    step += 1
+                    moves.append(Move(self, MoveType.PASSING, Location(i_hat, j_hat)))
+                elif target.color != self.color:
+                    moves.append(Move(self, MoveType.CAPTURE, Location(i_hat, j_hat), target))
+                    break
+                elif target.color == self.color:
+                    break
+        return moves
 
 
 class Pawn(Piece):
 
-    name = "knight"
+    name = "pawn"
 
-    def generate_moves(self, board: Board) -> list[Location]:
+    def generate_moves(self, board: Board) -> list[Move]:
         """
         Generates a list of moves physically possible for the pawn on the given board.
         """
-        los = []
-        # TODO: Capure/Attack Logic
+        moves = []
+
         if self.color == Color.WHITE:
-            los = [Location(self.loc.i+1, self.loc.j+d) for d in (-1, 0, 1)]
-            if not self.has_moved:
-                los.append(Location(self.loc.i+2, self.loc.j))
+            one_ahead = Location(self.loc.i+1, self.loc.j)
+            two_ahead = Location(self.loc.i+2, self.loc.j)
+            left_diagonal = Location(self.loc.i+1, self.loc.j-1)
+            right_diagonal = Location(self.loc.i+1, self.loc.j+1)
         if self.color == Color.BLACK:
-            los = [Location(self.loc.i-1, self.loc.j+d) for d in (-1, 0, 1)]
-            if not self.has_moved:
-                los.append(Location(self.loc.i-2, self.loc.j))
-        return self.trim_los_to_board(los)
+            one_ahead = Location(self.loc.i-1, self.loc.j)
+            two_ahead = Location(self.loc.i-2, self.loc.j)
+            left_diagonal = Location(self.loc.i-1, self.loc.j+1)
+            right_diagonal = Location(self.loc.i-1, self.loc.j-1)
+
+        if one_ahead.is_in_bounds():
+            target = board.board[one_ahead.i][one_ahead.j]
+            if target is None:
+                moves.append(Move(self, MoveType.PASSING, one_ahead))
+                if not self.has_moved and two_ahead.is_in_bounds():
+                    target_2 = board.board[two_ahead.i][two_ahead.j]
+                    if target_2 is None:
+                        moves.append(Move(self, MoveType.PASSING, two_ahead))
+
+        for dest in (left_diagonal, right_diagonal):
+            if dest.is_in_bounds():
+                target: Optional[Piece] = board.board[dest.i][dest.j]
+                if target is not None:
+                    if target.color != self.color:
+                        moves.append(Move(self, MoveType.CAPTURE, dest, target))
+
+        return moves
 
 
 class Knight(Piece):
 
     name = "knight"
 
-    def generate_moves(self, board: Board) -> list[Location]:
+    def generate_moves(self, board: Board) -> list[Move]:
         """
         Generates a list of moves physically possible for the knight on the given board.
         """
-        locs = []
+        moves = []
         for delta_i in [-2, -1, 1, 2]:
             for delta_j in [-2, -1, 1, 2]:
+                dest = Location(self.loc.i+delta_i, self.loc.j+delta_j)
                 if (
                     abs(delta_i) != abs(delta_j)
-                    and (i_hat := self.loc.i+delta_i) in (valid_range := range(0, BOARD_SIZE))
-                    and (j_hat := self.loc.j+delta_j) in valid_range
+                    and dest.is_in_bounds()
                 ):
-                    locs.append(Location(i_hat, j_hat))
-        return locs
+                    target: Optional[Piece] = board.board[dest.i][dest.j]
+                    if target is None:
+                        moves.append(Move(self, MoveType.PASSING, dest))
+                    elif target.color != self.color:
+                        moves.append(Move(self, MoveType.CAPTURE, dest, target))
+        return moves
 
 
 class Bishop(BoundMoveMixin, Piece):
