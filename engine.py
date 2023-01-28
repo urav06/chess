@@ -2,11 +2,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Union, Optional, Dict
 
-from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
-from engine_enums import (
+from engine_types import (
     Color, SlidingVariation, MoveType, Direction, Location,
     PARALLEL_DIRECTIONS, DIAGONAL_DIRECTIONS
 )
+from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
 
 
 class Piece(ABC):
