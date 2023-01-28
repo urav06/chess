@@ -66,17 +66,17 @@ class Board:
             case MoveType.CASTLE:
                 pass
 
-    def generate_possible_moves(self, color: Color) -> list[Move]:
+    def generate_possible_moves(self, color: Color, ignore_check: bool = False) -> list[Move]:
         moves: list[Move] = []
         for piece in filter(lambda p: p.color == color, self.all_pieces):
             for move in piece.generate_moves(self):
-                if not self._seek_move(move).is_in_check(color):
+                if not ignore_check or not self._seek_move(move).is_in_check(color):
                     moves.append(move)
         return moves
 
     def is_in_check(self, color: Color) -> bool:
         opponent_color = Color(color.value*-1)
-        opponent_moves = self.generate_possible_moves(opponent_color)
+        opponent_moves = self.generate_possible_moves(opponent_color, ignore_check=True)
         for move in opponent_moves:
             if move.is_attacking_king():
                 return True
