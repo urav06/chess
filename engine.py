@@ -69,7 +69,9 @@ class Board:
     def generate_possible_moves(self, color: Color) -> list[Move]:
         moves: list[Move] = []
         for piece in filter(lambda p: p.color == color, self.all_pieces):
-            moves.extend(piece.generate_moves(self))
+            for move in piece.generate_moves(self):
+                if not self._seek_move(move).is_in_check(color):
+                    moves.append(move)
         return moves
 
     def is_in_check(self, color: Color) -> bool:
@@ -79,6 +81,31 @@ class Board:
             if move.is_attacking_king():
                 return True
         return False
+
+    def is_in_checkmate(self, color: Color) -> bool:
+        return self.is_in_check(color) and len(self.generate_possible_moves(color)) == 0
+
+    def is_in_stalemate(self, color: Color) -> bool:
+        return not self.is_in_check(color) and len(self.generate_possible_moves(color)) == 0
+
+    def _seek_move(self, move: Move) -> Board:
+        board_sought = self._generate_deepcopy()
+        mirror_piece = board_sought[move.piece.loc]
+        assert mirror_piece is not None
+        move_copy = Move(
+            mirror_piece,
+            move.type,
+            move.destination,
+            board_sought[move.target_piece.loc] if move.target_piece else None
+        )
+        board_sought.execute_move(move_copy)
+        return board_sought
+
+    def _generate_deepcopy(self) -> Board:
+        deep_copy = Board()
+        for piece in self.all_pieces:
+            deep_copy.place_new(type(piece), piece.color, piece.loc)
+        return deep_copy
 
     def _capture_piece(self, piece: Piece) -> None:
         self[piece.loc] = None
