@@ -9,8 +9,8 @@ class Color(Enum):
     """
     The two colors in chess: black and white.
     """
-    BLACK = auto()
-    WHITE = auto()
+    BLACK = 1
+    WHITE = -1
 
 
 class SlidingVariation(Flag):

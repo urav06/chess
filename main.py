@@ -4,34 +4,42 @@ from typing import Dict
 
 from config import BOARD_SIZE
 
-
-def _fill_row(board: Board, rank: int, color: Color, row: str) -> list[Piece]:
-    assert len(row) == BOARD_SIZE
-    pieces: list[Piece] = []
-    row = row.lower()
-    mapping: Dict[str, type[Piece]] = dict(
-        p=Pawn, r=Rook, n=Knight, b=Bishop, q=Queen, k=King
+FEN_MAPPING: Dict[str, tuple[Color, type[Piece]]] = dict(
+        p=(Color.BLACK, Pawn),
+        r=(Color.BLACK, Rook),
+        n=(Color.BLACK, Knight),
+        b=(Color.BLACK, Bishop),
+        q=(Color.BLACK, Queen),
+        k=(Color.BLACK, King),
+        P=(Color.WHITE, Pawn),
+        R=(Color.WHITE, Rook),
+        N=(Color.WHITE, Knight),
+        B=(Color.WHITE, Bishop),
+        Q=(Color.WHITE, Queen),
+        K=(Color.WHITE, King)
     )
+
+
+def fill_rank(board: Board, rank: int, rank_repr: str) -> None:
     for j in range(0, BOARD_SIZE):
-        piece = board.place_new(mapping[row[j]], color, Location(rank, j))
-        pieces.append(piece)
-    return pieces
+        if rank_repr[j] != "x":
+            color = FEN_MAPPING[rank_repr[j]][0]
+            piece_type = FEN_MAPPING[rank_repr[j]][1]
+            board.place_new(piece_type, color, Location(rank, j))
 
 
-def classic_setup(board: Board) -> tuple[list[Piece], list[Piece]]:
-    # BLACK SETUP
-    black_pieces = []
-    black_pieces += _fill_row(board, 0, Color.BLACK, "rnbqkbnr")
-    black_pieces += _fill_row(board, 1, Color.BLACK, "pppppppp")
+def from_fen(board: Board, fen_data: str) -> None:
+    placement_data = fen_data.split(sep=" ")[0].split(sep="/")
+    for rank_num, rank_data in enumerate(placement_data):
+        rank_repr = "".join(int(c)*"x" if c.isdigit() else c for c in rank_data)
+        fill_rank(board, rank_num, rank_repr)
 
-    # WHITE SETUP
-    white_pieces = []
-    white_pieces += _fill_row(board, 7, Color.WHITE, "rnbqkbnr")
-    white_pieces += _fill_row(board, 6, Color.WHITE, "pppppppp")
 
-    return (black_pieces, white_pieces)
+def classic_setup(board: Board) -> None:
+    from_fen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+
 
 if __name__ == "__main__":
     board = Board()
-    classic_setup(board)
+    from_fen(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
     print(board)

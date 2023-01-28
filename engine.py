@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Union, Optional, Dict
+from typing import Union, Optional
 
 from engine_types import (
     Color, SlidingVariation, MoveType, Direction, Location,
@@ -40,17 +40,18 @@ class Piece(ABC):
 class Board:
 
     board: list[list[Optional[Piece]]]
-    graveyard: Dict[Color, list[Piece]]
+    all_pieces: list[Piece]
 
     def __init__(self) -> None:
         self.board = [[None for _ in range(BOARD_SIZE)] for __ in range(BOARD_SIZE)]
-        self.graveyard = {Color.BLACK: [], Color.WHITE: []}
+        self.all_pieces = []
 
     def place_new(self, piece_type: type[Piece], color: Color, location: Location) -> Piece:
         if self[location] is not None:
             raise ValueError(f"Location {location} is not vacant: {self[location]}")
         new_pice: Piece = piece_type(color=color, location=location)
         self[location] = new_pice
+        self.all_pieces.append(new_pice)
         return new_pice
 
     def execute_move(self, move: Move) -> None:
@@ -65,10 +66,23 @@ class Board:
             case MoveType.CASTLE:
                 pass
 
+    def generate_possible_moves(self, color: Color) -> list[Move]:
+        moves: list[Move] = []
+        for piece in filter(lambda p: p.color == color, self.all_pieces):
+            moves.extend(piece.generate_moves(self))
+        return moves
+
+    def is_in_check(self, color: Color) -> bool:
+        opponent_color = Color(color.value*-1)
+        opponent_moves = self.generate_possible_moves(opponent_color)
+        for move in opponent_moves:
+            if move.is_attacking_king():
+                return True
+        return False
+
     def _capture_piece(self, piece: Piece) -> None:
         self[piece.loc] = None
         piece.is_captured = True
-        self.graveyard[piece.color].append(piece)
 
     def _move_piece(self, piece: Piece, destination: Location) -> None:
         self[piece.loc] = None
@@ -135,6 +149,9 @@ class Move:
         self.destination = destination
         self.target_piece = target_piece
 
+    def is_attacking_king(self) -> bool:
+        return self.type is MoveType.CAPTURE and type(self.target_piece) is King
+
     def __repr__(self) -> str:
         if self.type is MoveType.PASSING:
             return f"<{self.type.name}: {self.destination}>"
@@ -167,6 +184,7 @@ class SlidingPiece(Piece):
             while (
                 step <= self.sliding_step_limit
                 and (dest := self.loc.get_relative(direction, step))
+                and dest.is_in_bounds()
             ):
                 target: Union[Piece, None] = board[dest]
                 if target is None:
@@ -192,19 +210,23 @@ class Pawn(Piece):
         front: Direction = Direction.N if self.color == Color.WHITE else Direction.S
         front_left: Direction = Direction.NW if self.color == Color.WHITE else Direction.SE
         front_right: Direction = Direction.NE if self.color == Color.WHITE else Direction.SW
-        one_ahead: Optional[Location] = self.loc.get_relative(front)
-        two_ahead: Optional[Location] = self.loc.get_relative(front, 2)
-        attacking_diagonals: tuple[Optional[Location], Optional[Location]] = (
+        one_ahead: Location = self.loc.get_relative(front)
+        two_ahead: Location = self.loc.get_relative(front, 2)
+        attacking_diagonals: tuple[Location, Location] = (
             self.loc.get_relative(front_left), self.loc.get_relative(front_right)
         )
 
-        if one_ahead and board[one_ahead] is None:
+        if one_ahead.is_in_bounds() and board[one_ahead] is None:
             moves.append(Move(self, MoveType.PASSING, one_ahead))
-            if not self.has_moved and two_ahead and board[two_ahead] is None:
+            if not self.has_moved and two_ahead.is_in_bounds() and board[two_ahead] is None:
                 moves.append(Move(self, MoveType.PASSING, two_ahead))
 
         for dest in attacking_diagonals:
-            if dest and (target := board[dest]) is not None and self.is_opponent(target):
+            if (
+                dest.is_in_bounds()
+                and (target := board[dest]) is not None
+                and self.is_opponent(target)
+            ):
                 moves.append(Move(self, MoveType.CAPTURE, dest, target))
 
         return moves
@@ -224,6 +246,7 @@ class Knight(Piece):
                 if (
                     abs(delta_i) != abs(delta_j)
                     and (dest := self.loc.get_relative((delta_i, delta_j)))
+                    and dest.is_in_bounds()
                 ):
                     if (target := board[dest]) is None:
                         moves.append(Move(self, MoveType.PASSING, dest))
