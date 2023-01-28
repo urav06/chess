@@ -1,87 +1,12 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from enum import Enum, Flag, auto
-from typing import ClassVar, Union, NamedTuple, Optional
+from typing import Union, Optional, Dict
 
 from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
-
-
-class Color(Enum):
-    """
-    The two colors in chess: black and white.
-    """
-    BLACK = auto()
-    WHITE = auto()
-
-
-class SlidingVariation(Flag):
-    """
-    Denotes parallel movement & diagonal movement of pieces.
-    """
-    PARALLEL = auto()
-    DIAGONAL = auto()
-
-
-class MoveType(Enum):
-    """
-    Denotes the type of moves.
-
-    PASSING: A piece moves without capturing.
-    CAPTURE: A piece captures an opponent piece.
-    CASTLE: Castling move.
-    """
-    PASSING = auto()
-    CAPTURE = auto()
-    CASTLE = auto()
-
-
-class Direction(Enum):
-    """
-    Denotes the 8 eight directions on the chess board
-    """
-    NORTH = N = (-1, 0)
-    SOUTH = S = (1, 0)
-    EAST = E = (0, 1)
-    WEST = W = (0, -1)
-    NORTHEAST = NE = (-1, 1)
-    NORTHWEST = NW = (-1, -1)
-    SOUTHEAST = SE = (1, 1)
-    SOUTHWEST = SW = (1, -1)
-
-
-class Location(NamedTuple):
-    """
-    i: Vertical. Denoting Rank. 0 to 7
-    j: Horizontal. Denoting File. 0 to 7
-    """
-    i: int
-    j: int
-
-    def is_in_bounds(self) -> bool:
-        valid_range = range(0, BOARD_SIZE)
-        return self.i in valid_range and self.j in valid_range
-
-    def get_relative(
-        self,
-        direction: Union[Direction, tuple[int, int]],
-        step: int = 1
-    ) -> Optional[Location]:
-        """
-        Returns a location in a particular direction relative to this point.
-        Direction is absolute in reference to the board and indepndent of color.
-        If the relative location is out of bounds, None is returned.
-        """
-        if type(direction) is Direction:
-            direction_val: tuple[int, int] = direction.value
-        elif type(direction) is tuple:
-            direction_val = direction
-
-        rel = Location(self.i+direction_val[0]*step, self.j+direction_val[1]*step)
-
-        return rel if rel.is_in_bounds() else None
-
-    def __repr__(self) -> str:
-        return f"({self.i},{self.j})"
+from engine_enums import (
+    Color, SlidingVariation, MoveType, Direction, Location,
+    PARALLEL_DIRECTIONS, DIAGONAL_DIRECTIONS
+)
 
 
 class Piece(ABC):
@@ -93,20 +18,13 @@ class Piece(ABC):
     color: Color
     loc: Location
     has_moved: bool
+    is_captured: bool
 
     def __init__(self, color: Color, location: Location) -> None:
-        if not (isinstance(color, Color) or color in (Color.BLACK.value, Color.WHITE.value)):
-            raise TypeError(f"Invalid color: {color}")
-        if not isinstance(location, Location):
-            raise TypeError(f"Invalid location: {location}")
-        if not location.is_in_bounds():
-            raise ValueError(f"Location out of bounds: {location}")
-        self.color: Color = color
-        self.loc: Location = location
-        self.has_moved: bool = False
-
-    def is_on(self, board: Board) -> bool:
-        return board[self.loc] == self
+        self.color = color
+        self.loc = location
+        self.has_moved = False
+        self.is_captured = False
 
     def is_opponent(self, another_piece: Piece) -> bool:
         return self.color != another_piece.color
@@ -121,49 +39,62 @@ class Piece(ABC):
 
 class Board:
 
-    size: ClassVar[int] = BOARD_SIZE
     board: list[list[Optional[Piece]]]
-    white_graveyard: list[Piece]
-    black_graveyard: list[Piece]
+    graveyard: Dict[Color, list[Piece]]
 
     def __init__(self) -> None:
-        self.board = [[None for _ in range(self.size)] for __ in range(self.size)]
+        self.board = [[None for _ in range(BOARD_SIZE)] for __ in range(BOARD_SIZE)]
+        self.graveyard = {Color.BLACK: [], Color.WHITE: []}
 
-    def place_new_piece(
-        self,
-        piece_type: type[Piece],
-        color: Color,
-        location: Union[Location, tuple[int, int]]
-    ) -> Piece:
-        if type(location) is not Location:
-            location = Location(*location)
-        if not location.is_in_bounds():
-            raise ValueError(f"Invalid location: {location}")
-        if (existing_piece := self[location]):
-            raise ValueError(f"A {existing_piece.name} already exists at {location}")
+    def place_new(self, piece_type: type[Piece], color: Color, location: Location) -> Piece:
+        if self[location] is not None:
+            raise ValueError(f"Location {location} is not vacant: {self[location]}")
         new_pice: Piece = piece_type(color=color, location=location)
         self[location] = new_pice
         return new_pice
 
-    def visualize(self) -> None:
+    def execute_move(self, move: Move) -> None:
+        match move.type:
+            case MoveType.PASSING:
+                self._move_piece(move.piece, move.destination)
+            case MoveType.CAPTURE:
+                assert move.target_piece is not None
+                assert move.target_piece.loc == move.destination
+                self._capture_piece(move.target_piece)
+                self._move_piece(move.piece, move.destination)
+            case MoveType.CASTLE:
+                pass
+
+    def _capture_piece(self, piece: Piece) -> None:
+        self[piece.loc] = None
+        piece.is_captured = True
+        self.graveyard[piece.color].append(piece)
+
+    def _move_piece(self, piece: Piece, destination: Location) -> None:
+        self[piece.loc] = None
+        piece.loc = destination
+        self[destination] = piece
+        piece.has_moved = True
+
+    def __str__(self) -> str:
         visual: str = ""
-        for i in range(self.size):
-            for j in range(self.size):
+        for i in range(BOARD_SIZE):
+            for j in range(BOARD_SIZE):
                 piece: Optional[Piece] = self[Location(i, j)]
                 square_color: Color = Color.BLACK if (i % 2 == 0) ^ (j % 2 == 0) else Color.WHITE
-                square: str = UNICODE_SQUARE[square_color.name]
-                visual += f" {piece} " if piece else f" {square} "
+                square_repr: str = UNICODE_SQUARE[square_color.name]
+                visual += f" {piece} " if piece else f" {square_repr} "
             visual += "\n"
-        print(visual)
+        return visual
 
     def __getitem__(self, location: Location) -> Optional[Piece]:
         if not location.is_in_bounds():
-            raise ValueError(f"Invalid location: {location}")
+            raise ValueError(f"Location is out of bounds: {location}")
         return self.board[location.i][location.j]
 
     def __setitem__(self, location: Location, piece: Optional[Piece]) -> None:
         if not location.is_in_bounds():
-            raise ValueError(f"Invalid location: {location}")
+            raise ValueError(f"Location is out of bounds: {location}")
         self.board[location.i][location.j] = piece
 
 
@@ -186,14 +117,13 @@ class Move:
     target_piece: Optional[Piece]
 
     def __init__(
-        self,
-        piece: Piece,
+        self, piece: Piece,
         type: MoveType,
         destination: Location,
         target_piece: Optional[Piece] = None
     ) -> None:
         if type in (MoveType.CAPTURE, MoveType.CASTLE) and target_piece is None:
-            raise ValueError(f"Target piece not provided for {MoveType.CASTLE.name} move")
+            raise ValueError(f"Target piece not provided for {type.name} move")
 
         if type == MoveType.CAPTURE and target_piece and destination != target_piece.loc:
             raise ValueError(
@@ -205,32 +135,6 @@ class Move:
         self.destination = destination
         self.target_piece = target_piece
 
-    def execute(self, board: Board) -> None:
-        if not self.piece.is_on(board):
-            raise ValueError(
-                f"This {self.piece.color.name} {self.piece.name} is not on the board: {board}"
-            )
-        if self.target_piece and not self.target_piece.is_on(board):
-            raise ValueError(
-                f"Target {self.piece.color.name} {self.piece.name} is not on the board: {board}"
-            )
-
-        old_location = self.piece.loc
-        match self.type:
-            case MoveType.PASSING:
-                self.piece.loc = self.destination
-                board[old_location] = None
-                board[self.destination] = self.piece
-
-            case MoveType.CAPTURE:
-                pass
-            case MoveType.CASTLE:
-                pass
-            case _:
-                raise ValueError(f"Invalid Move Type: {self.type}")
-
-        self.piece.has_moved = True
-
     def __repr__(self) -> str:
         if self.type is MoveType.PASSING:
             return f"<{self.type.name}: {self.destination}>"
@@ -238,31 +142,24 @@ class Move:
             return f"<{self.type.name} ({self.target_piece}): {self.destination}>"
 
 
-class SlidingMixin(Piece):
-    # TODO: AVOID INHERTANCE FROM PIECE.
+class SlidingPiece(Piece):
     """
     Mixin Class to generate moves for pieces that move in straight lines.
     Applicable Pieces: Rook, Bishop, Queen.
     """
 
-    PARALLEL_DIRECTIONS: ClassVar[list[Direction]] = (
-        [Direction.N, Direction.S, Direction.E, Direction.W]
-    )
-    DIAGONAL_DIRECTIONS: ClassVar[list[Direction]] = (
-        [Direction.NE, Direction.NW, Direction.SE, Direction.SW]
-    )
     slidng_variation: SlidingVariation = SlidingVariation(0)
     sliding_step_limit: Union[int, float] = 0
 
     def generate_moves(self, board: Board) -> list[Move]:
         """
-        Generates a list of moves physically possible for the piece on the given board.
+        Generates a list of moves physically possible for the sliding piece on the given board.
         """
-        can_move_parallelly = SlidingVariation.PARALLEL in self.slidng_variation
-        can_move_diagonally = SlidingVariation.DIAGONAL in self.slidng_variation
+        can_move_parallelly: bool = SlidingVariation.PARALLEL in self.slidng_variation
+        can_move_diagonally: bool = SlidingVariation.DIAGONAL in self.slidng_variation
         directions = (
-            (self.PARALLEL_DIRECTIONS if can_move_parallelly else [])
-            + (self.DIAGONAL_DIRECTIONS if can_move_diagonally else [])
+            (PARALLEL_DIRECTIONS if can_move_parallelly else [])
+            + (DIAGONAL_DIRECTIONS if can_move_diagonally else [])
         )
         moves: list[Move] = []
         for direction in directions:
@@ -335,28 +232,28 @@ class Knight(Piece):
         return moves
 
 
-class Bishop(SlidingMixin, Piece):
+class Bishop(SlidingPiece):
 
     slidng_variation = SlidingVariation.DIAGONAL
     sliding_step_limit = float('inf')
     name = "BISHOP"
 
 
-class Rook(SlidingMixin, Piece):
+class Rook(SlidingPiece):
 
     slidng_variation = SlidingVariation.PARALLEL
     sliding_step_limit = float('inf')
     name = "ROOK"
 
 
-class Queen(SlidingMixin, Piece):
+class Queen(SlidingPiece):
 
     slidng_variation = SlidingVariation.PARALLEL | SlidingVariation.DIAGONAL
     sliding_step_limit = float('inf')
     name = "QUEEN"
 
 
-class King(SlidingMixin, Piece):
+class King(SlidingPiece):
 
     slidng_variation = SlidingVariation.PARALLEL | SlidingVariation.DIAGONAL
     sliding_step_limit = 1
