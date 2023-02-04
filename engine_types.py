@@ -13,6 +13,9 @@ class Color(Enum):
     BLACK = 1
     WHITE = -1
 
+    def __invert__(self) -> Color:
+        return Color(self.value*-1)
+
 
 class SlidingVariation(Flag):
     """

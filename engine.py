@@ -26,7 +26,7 @@ class Piece(ABC):
         self.is_captured = False
 
     def is_opponent(self, another_piece: Piece) -> bool:
-        return self.color != another_piece.color
+        return another_piece.color is ~self.color
 
     @abstractmethod
     def generate_moves(self, board: Board) -> list[Move]:
@@ -71,17 +71,17 @@ class Board:
     def generate_possible_moves(self, color: Color, ignore_check: bool = False) -> list[Move]:
         moves: list[Move] = []
 
-        def is_uncaptured_opponent(p: Piece) -> bool:
+        def is_uncaptured_piece_of_color(p: Piece) -> bool:
             return p.color == color and p.is_captured is False
 
-        for piece in filter(is_uncaptured_opponent, self.all_pieces):
+        for piece in filter(is_uncaptured_piece_of_color, self.all_pieces):
             for move in piece.generate_moves(self):
                 if ignore_check or not self._seek_move(move).is_in_check(color):
                     moves.append(move)
         return moves
 
     def is_in_check(self, color: Color) -> bool:
-        opponent_color = Color(color.value*-1)
+        opponent_color = ~color
         opponent_moves = self.generate_possible_moves(opponent_color, ignore_check=True)
         for move in opponent_moves:
             if move.is_attacking_king():
