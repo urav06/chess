@@ -1,6 +1,7 @@
 from __future__ import annotations
+
 from enum import Enum, Flag, auto
-from typing import Union, NamedTuple
+from typing import NamedTuple, Union
 
 from config import BOARD_SIZE
 

@@ -1,12 +1,11 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from typing import Union, Optional
 
-from engine_types import (
-    Color, SlidingVariation, MoveType, Direction, Location,
-    PARALLEL_DIRECTIONS, DIAGONAL_DIRECTIONS
-)
+from abc import ABC, abstractmethod
+from typing import Optional, Union
+
 from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
+from engine_types import (DIAGONAL_DIRECTIONS, PARALLEL_DIRECTIONS, Color,
+                          Direction, Location, MoveType, SlidingVariation)
 
 
 class Piece(ABC):
@@ -35,6 +34,9 @@ class Piece(ABC):
 
     def __str__(self) -> str:
         return UNICODE_PIECES[self.name][self.color.name]
+
+    def __repr__(self) -> str:
+        return f"{str(self)}@{str(self.loc)}"
 
 
 class Board:
@@ -68,9 +70,13 @@ class Board:
 
     def generate_possible_moves(self, color: Color, ignore_check: bool = False) -> list[Move]:
         moves: list[Move] = []
-        for piece in filter(lambda p: p.color == color, self.all_pieces):
+
+        def is_uncaptured_opponent(p: Piece) -> bool:
+            return p.color == color and p.is_captured is False
+
+        for piece in filter(is_uncaptured_opponent, self.all_pieces):
             for move in piece.generate_moves(self):
-                if not ignore_check or not self._seek_move(move).is_in_check(color):
+                if ignore_check or not self._seek_move(move).is_in_check(color):
                     moves.append(move)
         return moves
 
@@ -128,6 +134,9 @@ class Board:
             visual += "\n"
         return visual
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def __getitem__(self, location: Location) -> Optional[Piece]:
         if not location.is_in_bounds():
             raise ValueError(f"Location is out of bounds: {location}")
@@ -180,10 +189,14 @@ class Move:
         return self.type is MoveType.CAPTURE and type(self.target_piece) is King
 
     def __repr__(self) -> str:
-        if self.type is MoveType.PASSING:
-            return f"<{self.type.name}: {self.destination}>"
-        else:
-            return f"<{self.type.name} ({self.target_piece}): {self.destination}>"
+        match self.type:
+            case MoveType.PASSING:
+                return f"{str(self.piece)}:{str(self.piece.loc)}->{str(self.destination)}"
+            case MoveType.CAPTURE:
+                return f"{str(self.piece)}:{str(self.piece.loc)}->{str(self.destination)}"\
+                    f":>{str(self.target_piece)}<"
+            case MoveType.CASTLE:
+                return f"{str(self.piece)}:CASTLES:{'queenside' or 'kingside'}"
 
 
 class SlidingPiece(Piece):
