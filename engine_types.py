@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, Flag, auto
-from typing import NamedTuple, Union
+from typing import NamedTuple
 
 from config import BOARD_SIZE
 
@@ -66,22 +66,17 @@ class Location(NamedTuple):
     j: int
 
     def is_in_bounds(self) -> bool:
-        valid_range = range(0, BOARD_SIZE)
-        return self.i in valid_range and self.j in valid_range
+        return 0 <= self.i < BOARD_SIZE and 0 <= self.j < BOARD_SIZE
 
     def get_relative(
         self,
-        direction: Union[Direction, tuple[int, int]],
+        direction: tuple[int, int],
         step: int = 1
     ) -> Location:
         """
         Returns a location in a particular direction relative to this location.
         """
-        if type(direction) is Direction:
-            direction_value: tuple[int, int] = direction.value
-        elif type(direction) is tuple:
-            direction_value = direction
-        return Location(self.i+direction_value[0]*step, self.j+direction_value[1]*step)
+        return Location(self.i+direction[0]*step, self.j+direction[1]*step)
 
     def __repr__(self) -> str:
         return f"({self.i},{self.j})"

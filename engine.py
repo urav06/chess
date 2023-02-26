@@ -138,13 +138,9 @@ class Board:
         return str(self)
 
     def __getitem__(self, location: Location) -> Optional[Piece]:
-        if not location.is_in_bounds():
-            raise ValueError(f"Location is out of bounds: {location}")
         return self.board[location.i][location.j]
 
     def __setitem__(self, location: Location, piece: Optional[Piece]) -> None:
-        if not location.is_in_bounds():
-            raise ValueError(f"Location is out of bounds: {location}")
         self.board[location.i][location.j] = piece
 
 
@@ -186,7 +182,7 @@ class Move:
         self.target_piece = target_piece
 
     def is_attacking_king(self) -> bool:
-        return self.type is MoveType.CAPTURE and type(self.target_piece) is King
+        return type(self.target_piece) is King and self.type is MoveType.CAPTURE
 
     def __repr__(self) -> str:
         match self.type:
@@ -223,7 +219,7 @@ class SlidingPiece(Piece):
             step: int = 1
             while (
                 step <= self.sliding_step_limit
-                and (dest := self.loc.get_relative(direction, step))
+                and (dest := self.loc.get_relative(direction.value, step))
                 and dest.is_in_bounds()
             ):
                 target: Union[Piece, None] = board[dest]
@@ -250,10 +246,10 @@ class Pawn(Piece):
         front: Direction = Direction.N if self.color == Color.WHITE else Direction.S
         front_left: Direction = Direction.NW if self.color == Color.WHITE else Direction.SE
         front_right: Direction = Direction.NE if self.color == Color.WHITE else Direction.SW
-        one_ahead: Location = self.loc.get_relative(front)
-        two_ahead: Location = self.loc.get_relative(front, 2)
+        one_ahead: Location = self.loc.get_relative(front.value)
+        two_ahead: Location = self.loc.get_relative(front.value, 2)
         attacking_diagonals: tuple[Location, Location] = (
-            self.loc.get_relative(front_left), self.loc.get_relative(front_right)
+            self.loc.get_relative(front_left.value), self.loc.get_relative(front_right.value)
         )
 
         if one_ahead.is_in_bounds() and board[one_ahead] is None:
@@ -355,13 +351,13 @@ class King(SlidingPiece):
             )
 
         if (queenside_rook := next(filter(is_eligible_rook_queenside, board.all_pieces), None)):
-            kings_path = [Location(self.loc.i, j) for j in range(self.loc.i-2, self.loc.i+1)]
+            kings_path = [Location(self.loc.i, j) for j in range(self.loc.j-2, self.loc.j+1)]
             opponent_moves = board.generate_possible_moves(~self.color, ignore_check=True)
             if not any(opponent_move.destination in kings_path for opponent_move in opponent_moves):
                 castling_moves.append(Move(self, MoveType.CASTLE, Location(self.loc.i, self.loc.j-2), queenside_rook))
 
         if (kingside_rook := next(filter(is_eligible_rook_kingside, board.all_pieces), None)):
-            kings_path = [Location(self.loc.i, j) for j in range(self.loc.i, self.loc.i+3)]
+            kings_path = [Location(self.loc.i, j) for j in range(self.loc.j, self.loc.j+3)]
             opponent_moves = board.generate_possible_moves(~self.color, ignore_check=True)
             if not any(opponent_move.destination in kings_path for opponent_move in opponent_moves):
                 castling_moves.append(Move(self, MoveType.CASTLE, Location(self.loc.i, self.loc.j+2), kingside_rook))
