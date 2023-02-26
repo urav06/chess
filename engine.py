@@ -71,8 +71,8 @@ class Board:
     def generate_possible_moves(self, color: Color, ignore_check: bool = False) -> list[Move]:
         moves: list[Move] = []
 
-        def is_uncaptured_piece_of_color(p: Piece) -> bool:
-            return p.color == color and p.is_captured is False
+        def is_uncaptured_piece_of_color(piece: Piece) -> bool:
+            return piece.color is color and piece.is_captured is False
 
         for piece in filter(is_uncaptured_piece_of_color, self.all_pieces):
             for move in piece.generate_moves(self):
@@ -321,3 +321,49 @@ class King(SlidingPiece):
     slidng_variation = SlidingVariation.PARALLEL | SlidingVariation.DIAGONAL
     sliding_step_limit = 1
     name: str = "KING"
+
+    def generate_moves(self, board: Board) -> list[Move]:
+        return super().generate_moves(board)
+
+    def generate_castling_moves(self, board: Board) -> list[Move]:
+        castling_moves: list[Move] = []
+
+        def get_castling_space(rook: Rook) -> list[Location]:
+            if rook.loc.j < self.loc.j:
+                return [Location(self.loc.i, j) for j in range(rook.loc.j+1, self.loc.j)]
+            else:
+                return [Location(self.loc.i, j) for j in range(self.loc.j+1, rook.loc.j)]
+
+        def is_eligible_rook_queenside(piece: Piece) -> bool:
+            return (
+                type(piece) is Rook
+                and piece.color is self.color
+                and piece.has_moved is False
+                and piece.loc.j == 0
+                and piece.loc.i == self.loc.i
+                and all(board[space] is None for space in get_castling_space(piece))
+            )
+
+        def is_eligible_rook_kingside(piece: Piece) -> bool:
+            return (
+                type(piece) is Rook
+                and piece.color is self.color
+                and piece.has_moved is False
+                and piece.loc.j == 7
+                and piece.loc.i == self.loc.i
+                and all(board[space] is None for space in get_castling_space(piece))
+            )
+
+        if (queenside_rook := next(filter(is_eligible_rook_queenside, board.all_pieces), None)):
+            kings_path = [Location(self.loc.i, j) for j in range(self.loc.i-2, self.loc.i+1)]
+            opponent_moves = board.generate_possible_moves(~self.color, ignore_check=True)
+            if not any(opponent_move.destination in kings_path for opponent_move in opponent_moves):
+                castling_moves.append(Move(self, MoveType.CASTLE, Location(self.loc.i, self.loc.j-2), queenside_rook))
+
+        if (kingside_rook := next(filter(is_eligible_rook_kingside, board.all_pieces), None)):
+            kings_path = [Location(self.loc.i, j) for j in range(self.loc.i, self.loc.i+3)]
+            opponent_moves = board.generate_possible_moves(~self.color, ignore_check=True)
+            if not any(opponent_move.destination in kings_path for opponent_move in opponent_moves):
+                castling_moves.append(Move(self, MoveType.CASTLE, Location(self.loc.i, self.loc.j+2), kingside_rook))
+
+        return castling_moves
