@@ -320,7 +320,7 @@ class King(SlidingPiece):
     name: str = "KING"
 
     def generate_moves(self, board: Board) -> list[Move]:
-        return super().generate_moves(board) + self.generate_castling_moves(board)
+        return super().generate_moves(board)
 
     def generate_castling_moves(self, board: Board) -> list[Move]:
         castling_moves: list[Move] = []
