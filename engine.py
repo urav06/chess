@@ -4,8 +4,16 @@ from abc import ABC, abstractmethod
 from typing import Optional, Union
 
 from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
-from engine_types import (DIAGONAL_DIRECTIONS, PARALLEL_DIRECTIONS, Color,
-                          Direction, Location, MoveType, SlidingVariation)
+from engine_types import (
+    DIAGONAL_DIRECTIONS,
+    PARALLEL_DIRECTIONS,
+    Color,
+    Direction,
+    Location,
+    MoveType,
+    SlidingVariation
+)
+from fen_utils import to_fen
 
 
 class Piece(ABC):
@@ -43,10 +51,12 @@ class Board:
 
     board: list[list[Optional[Piece]]]
     all_pieces: list[Piece]
+    active_color: Optional[Color]
 
     def __init__(self) -> None:
         self.board = [[None for _ in range(BOARD_SIZE)] for __ in range(BOARD_SIZE)]
         self.all_pieces = []
+        self.active_color = None
 
     def place_new(self, piece_type: type[Piece], color: Color, location: Location, is_ghost: bool = False) -> Piece:
         if not is_ghost and self[location] is not None:
@@ -61,12 +71,12 @@ class Board:
     def execute_move(self, move: Move) -> None:
         if move.type is MoveType.PASSING:
             self._move_piece(move.piece, move.destination)
-        if move.type is MoveType.CAPTURE:
+        elif move.type is MoveType.CAPTURE:
             assert move.target_piece is not None
             assert move.target_piece.loc == move.destination
             self._capture_piece(move.target_piece)
             self._move_piece(move.piece, move.destination)
-        if move.type is MoveType.CASTLE:
+        elif move.type is MoveType.CASTLE:
             pass
 
     def generate_possible_moves(self, color: Color, ignore_check: bool = False) -> list[Move]:
@@ -136,7 +146,7 @@ class Board:
         return visual
 
     def __repr__(self) -> str:
-        return str(self)
+        return to_fen(self)
 
     def __getitem__(self, location: Location) -> Optional[Piece]:
         return self.board[location.i][location.j]
