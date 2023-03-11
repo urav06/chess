@@ -59,16 +59,15 @@ class Board:
         return new_pice
 
     def execute_move(self, move: Move) -> None:
-        match move.type:
-            case MoveType.PASSING:
-                self._move_piece(move.piece, move.destination)
-            case MoveType.CAPTURE:
-                assert move.target_piece is not None
-                assert move.target_piece.loc == move.destination
-                self._capture_piece(move.target_piece)
-                self._move_piece(move.piece, move.destination)
-            case MoveType.CASTLE:
-                pass
+        if move.type is MoveType.PASSING:
+            self._move_piece(move.piece, move.destination)
+        if move.type is MoveType.CAPTURE:
+            assert move.target_piece is not None
+            assert move.target_piece.loc == move.destination
+            self._capture_piece(move.target_piece)
+            self._move_piece(move.piece, move.destination)
+        if move.type is MoveType.CASTLE:
+            pass
 
     def generate_possible_moves(self, color: Color, ignore_check: bool = False) -> list[Move]:
         moves: list[Move] = []
@@ -187,14 +186,14 @@ class Move:
         return type(self.target_piece) is King and self.type is MoveType.CAPTURE
 
     def __repr__(self) -> str:
-        match self.type:
-            case MoveType.PASSING:
-                return f"{str(self.piece)}:{str(self.piece.loc)}->{str(self.destination)}"
-            case MoveType.CAPTURE:
-                return f"{str(self.piece)}:{str(self.piece.loc)}->{str(self.destination)}"\
-                    f":>{str(self.target_piece)}<"
-            case MoveType.CASTLE:
-                return f"{str(self.piece)}:CASTLES:{'queenside' or 'kingside'}"
+        if self.type is MoveType.PASSING:
+            return f"{str(self.piece)}:{str(self.piece.loc)}->{str(self.destination)}"
+        if self.type is MoveType.CAPTURE:
+            return f"{str(self.piece)}:{str(self.piece.loc)}->{str(self.destination)}"\
+                f":>{str(self.target_piece)}<"
+        if self.type is MoveType.CASTLE:
+            return f"{str(self.piece)}:CASTLES:{'queenside' or 'kingside'}"
+        return ""
 
 
 class SlidingPiece(Piece):
@@ -321,7 +320,7 @@ class King(SlidingPiece):
     name: str = "KING"
 
     def generate_moves(self, board: Board) -> list[Move]:
-        return super().generate_moves(board)
+        return super().generate_moves(board) + self.generate_castling_moves(board)
 
     def generate_castling_moves(self, board: Board) -> list[Move]:
         castling_moves: list[Move] = []
@@ -329,8 +328,7 @@ class King(SlidingPiece):
         def get_castling_space(rook: Rook) -> list[Location]:
             if rook.loc.j < self.loc.j:
                 return [Location(self.loc.i, j) for j in range(rook.loc.j+1, self.loc.j)]
-            else:
-                return [Location(self.loc.i, j) for j in range(self.loc.j+1, rook.loc.j)]
+            return [Location(self.loc.i, j) for j in range(self.loc.j+1, rook.loc.j)]
 
         def is_eligible_rook_queenside(piece: Piece) -> bool:
             return (
