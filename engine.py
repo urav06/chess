@@ -48,12 +48,14 @@ class Board:
         self.board = [[None for _ in range(BOARD_SIZE)] for __ in range(BOARD_SIZE)]
         self.all_pieces = []
 
-    def place_new(self, piece_type: type[Piece], color: Color, location: Location) -> Piece:
-        if self[location] is not None:
-            raise ValueError(f"Location {location} is not vacant: {self[location]}")
+    def place_new(self, piece_type: type[Piece], color: Color, location: Location, is_ghost: bool = False) -> Piece:
+        if not is_ghost and self[location] is not None:
+            raise ValueError(f"Can't place {color} {piece_type} at {location}. {self[location]} already present there.")
         new_pice: Piece = piece_type(color=color, location=location)
-        self[location] = new_pice
+        new_pice.is_captured = is_ghost
         self.all_pieces.append(new_pice)
+        if not is_ghost:
+            self[location] = new_pice
         return new_pice
 
     def execute_move(self, move: Move) -> None:
@@ -109,8 +111,8 @@ class Board:
 
     def _generate_deepcopy(self) -> Board:
         deep_copy = Board()
-        for piece in self.all_pieces:
-            deep_copy.place_new(type(piece), piece.color, piece.loc)
+        for piece in (self.all_pieces):
+            deep_copy.place_new(type(piece), piece.color, piece.loc, piece.is_captured)
         return deep_copy
 
     def _capture_piece(self, piece: Piece) -> None:
