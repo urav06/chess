@@ -13,7 +13,6 @@ from engine_types import (
     MoveType,
     SlidingVariation
 )
-from fen_utils import to_fen
 
 
 class Piece(ABC):
@@ -146,7 +145,7 @@ class Board:
         return visual
 
     def __repr__(self) -> str:
-        return to_fen(self)
+        return str(self)
 
     def __getitem__(self, location: Location) -> Optional[Piece]:
         return self.board[location.i][location.j]
