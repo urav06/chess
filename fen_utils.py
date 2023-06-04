@@ -1,49 +1,50 @@
-from typing import Dict
+from typing import Dict, List
 
 from config import BOARD_SIZE
 from engine import Board
-from engine_types import Color, Location, PieceType, Piece
+from engine_types import Color, Location, Piece, PieceType
 
-FEN_MAPPING: Dict[str, tuple[Color, PieceType]] = {
-    "p": (Color.BLACK, PieceType.PAWN),
-    "r": (Color.BLACK, PieceType.ROOK),
-    "n": (Color.BLACK, PieceType.KNIGHT),
-    "b": (Color.BLACK, PieceType.BISHOP),
-    "q": (Color.BLACK, PieceType.QUEEN),
-    "k": (Color.BLACK, PieceType.KING),
-    "P": (Color.WHITE, PieceType.PAWN),
-    "R": (Color.WHITE, PieceType.ROOK),
-    "N": (Color.WHITE, PieceType.KNIGHT),
-    "B": (Color.WHITE, PieceType.BISHOP),
-    "Q": (Color.WHITE, PieceType.QUEEN),
-    "K": (Color.WHITE, PieceType.KING)
+FEN_MAPPING: Dict[str, Piece] = {
+    "p": Piece(Color.BLACK, PieceType.ROOK),
+    "r": Piece(Color.BLACK, PieceType.ROOK),
+    "n": Piece(Color.BLACK, PieceType.KNIGHT),
+    "b": Piece(Color.BLACK, PieceType.BISHOP),
+    "q": Piece(Color.BLACK, PieceType.QUEEN),
+    "k": Piece(Color.BLACK, PieceType.KING),
+    "P": Piece(Color.WHITE, PieceType.PAWN),
+    "R": Piece(Color.WHITE, PieceType.ROOK),
+    "N": Piece(Color.WHITE, PieceType.KNIGHT),
+    "B": Piece(Color.WHITE, PieceType.BISHOP),
+    "Q": Piece(Color.WHITE, PieceType.QUEEN),
+    "K": Piece(Color.WHITE, PieceType.KING)
 }
 
 INV_FEN_MAPPING = {v: k for k, v in FEN_MAPPING.items()}
 
 
 def from_fen(board: Board, fen_string: str) -> None:
-    fen_data = fen_string.strip().split(sep=" ")
+    fen_data: List[str] = fen_string.strip().split(sep=" ")
 
     if len(fen_data) == 1:
-        placement_string = fen_data[0]
+        placement_string: str = fen_data[0]
     elif len(fen_data) == 6:
-        placement_string, color_data, _, _, _, _ = fen_data
-        active_color = Color.BLACK if color_data.lower() == "b"\
+        placement_string, active_color_data, _, _, _, _ = fen_data
+        active_color: Color = Color.BLACK if active_color_data.lower() == "b"\
             else Color.WHITE
         board.active_color = active_color
 
-    placement_data = placement_string.split("/")
+    placement_data: List[str] = placement_string.split("/")
     if len(placement_data) != BOARD_SIZE:
-        raise ValueError(f"FEN Notation Error in row {placement_data, placement_string}")
+        raise ValueError(f"Invalid number of rows in the FEN string: {len(placement_data)}")
 
     for i, rank_data in enumerate(placement_data):
-        rank_repr = "".join(int(c)*"x" if c.isdigit() else c
-                            for c in rank_data)
+        rank_repr = "".join(
+            int(c)*"x" if c.isdigit() else c for c in rank_data
+        )
         for j, square_data in enumerate(rank_repr):
             if square_data != "x":
-                piece = FEN_MAPPING[square_data]
-                board.place_new(Piece(color=piece[0],type=piece[1]), Location(i, j))
+                piece: Piece = FEN_MAPPING[square_data]
+                board.place_new(piece, Location(i, j))
 
 
 def to_fen(board: Board) -> str:
@@ -57,7 +58,7 @@ def to_fen(board: Board) -> str:
                 color = stack[1]
                 piece = stack[0]
                 # print("INV_FEN_MAPPING is",INV_FEN_MAPPING,"......",color,piece)
-                data = INV_FEN_MAPPING[(Color(color),PieceType(piece))]
+                data = INV_FEN_MAPPING[(Color(color), PieceType(piece))]
                 if empty_counter != 0:
                     placement_string += f"{empty_counter}"
                     empty_counter = 0

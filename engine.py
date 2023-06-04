@@ -2,13 +2,14 @@ import numpy as np
 import numpy.typing as npt
 from typing import Generator
 
-from engine_types import Location, Move, MoveType, Piece
+from engine_types import Location, Move, MoveType, Piece, Color
 
 
 class Board:
 
     def __init__(self) -> None:
         self.board: npt.NDArray[np.int8] = np.full(shape=(8, 8, 4), fill_value=0, dtype=np.int8)
+        self.active_color = Color.WHITE
 
     def execute_move(self, move: Move) -> None:
         if move.type is MoveType.PASSING:
