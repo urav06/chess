@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from config import BOARD_SIZE
 from engine import Board
@@ -49,22 +49,20 @@ def from_fen(board: Board, fen_string: str) -> None:
 
 def to_fen(board: Board) -> str:
     placement_string = ""
-    for rank in board.board:
+    for i, rank in enumerate(board.board):
         empty_counter = 0
-        for stack in rank:
-            if stack[3] == 0:
+        for j in rank:
+            piece: Optional[Piece] = board.get_piece(Location(i, j))
+            if piece is None:
                 empty_counter += 1
             else:
-                color = stack[1]
-                piece = stack[0]
-                # print("INV_FEN_MAPPING is",INV_FEN_MAPPING,"......",color,piece)
-                data = INV_FEN_MAPPING[(Color(color), PieceType(piece))]
+                square_data = INV_FEN_MAPPING[piece]
                 if empty_counter != 0:
                     placement_string += f"{empty_counter}"
                     empty_counter = 0
-                    placement_string += f"{data}"
+                    placement_string += f"{square_data}"
                 else:
-                    placement_string += f"{data}"
+                    placement_string += f"{square_data}"
         if empty_counter != 0:
             placement_string += f"{empty_counter}"
         placement_string += "/"

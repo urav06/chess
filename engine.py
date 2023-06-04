@@ -1,8 +1,8 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Generator
+from typing import Generator, Optional
 
-from engine_types import Location, Move, MoveType, Piece, Color
+from engine_types import Location, Move, MoveType, Piece, Color, PieceType
 
 
 class Board:
@@ -38,6 +38,13 @@ class Board:
         if self.board[location][3] == 1:
             raise ValueError(f'Cannot place piece at {location} because it is already occupied.')
         self.board[location] = np.array([piece.type.value, piece.color.value, 0, 1])
+
+    def get_piece(self, location: Location) -> Optional[Piece]:
+        square: npt.NDArray[np.int8] = self.board[location]
+        if square[3] == 0:  # Square Unoccupied
+            return None
+        else:  # Square Occupied
+            return Piece(Color(square[1]), PieceType(square[0]))
 
     def get_legal_moves(self) -> list[Move]:
         # TODO: rename better + maybe this will be a generator + optimize
