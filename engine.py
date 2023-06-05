@@ -1,20 +1,27 @@
 import numpy as np
 import numpy.typing as npt
-from typing import Generator, Optional
+from typing import Generator, Optional, Any
 
 from engine_types import Location, Move, MoveType, Piece, Color, PieceType
 
 
 class Board:
-
+    """
+    Board.board is an 8x8 matrix of squares.
+    Values stored in a square are:
+        0: Piece Color
+        1: Piece Type
+        2: Whether the piece has moved
+        3: Whether the square is occupied
+    """
     def __init__(self) -> None:
         self.board: npt.NDArray[np.int8] = np.full(shape=(8, 8, 4), fill_value=0, dtype=np.int8)
         self.active_color = Color.WHITE
 
     def execute_move(self, move: Move) -> None:
         if move.type is MoveType.PASSING:
-            self.board[move.end] = self.board[move.start]
-            self.board[move.start] = 0
+            self[move.end] = self[move.start]
+            self[move.start] = 0
 
         elif move.type is MoveType.CAPTURE:
             pass
@@ -23,28 +30,26 @@ class Board:
         else:
             raise ValueError(f'Unknown move type: {move.type}')
 
-    def place_new(self, piece: Piece, location: Location) -> None:
+    def set_square(self, location: Location, piece: Optional[Piece]) -> None:
         """
-        Places a new piece on the board.
-        Values stored in the board are:
-            0: Piece type
-            1: Piece color
-            2: Whether the piece has moved
-            3: Whether the square is occupied
+        Places or removes a piece.
 
-        :param piece: The piece to place.
+        :param piece: The piece to place. None to remove any piece.
         :param location: The location to place the piece.
         """
-        if self.board[location][3] == 1:
-            raise ValueError(f'Cannot place piece at {location} because it is already occupied.')
-        self.board[location] = np.array([piece.type.value, piece.color.value, 0, 1])
+        if piece:
+            if self[location][3] == 1:
+                raise ValueError(f"{location} already occupied.")
+            self[location] = np.array([piece.color, piece.type, 0, 1], dtype=np.int8)
+        elif self[location][3] != 0:
+            self[location] = 0
 
     def get_piece(self, location: Location) -> Optional[Piece]:
-        square: npt.NDArray[np.int8] = self.board[location]
-        if square[3] == 0:  # Square Unoccupied
+        square: npt.NDArray[np.int8] = self[location]
+        if square[3] == 0:
             return None
-        else:  # Square Occupied
-            return Piece(Color(square[1]), PieceType(square[0]))
+        else:
+            return Piece(Color(square[0]), PieceType(square[1]))
 
     def get_legal_moves(self) -> list[Move]:
         # TODO: rename better + maybe this will be a generator + optimize
@@ -53,7 +58,7 @@ class Board:
     def __getitem__(self, location: Location) -> npt.NDArray[np.int8]:
         return self.board[location.i, location.j, :]
 
-    def __setitem__(self, location: Location, value: npt.NDArray[np.int8]) -> None:
+    def __setitem__(self, location: Location, value: Any) -> None:
         self.board[location.i, location.j] = value
 
 

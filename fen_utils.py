@@ -44,14 +44,16 @@ def from_fen(board: Board, fen_string: str) -> None:
         for j, square_data in enumerate(rank_repr):
             if square_data != "x":
                 piece: Piece = FEN_MAPPING[square_data]
-                board.place_new(piece, Location(i, j))
+                board.set_square(Location(i, j), piece)
+            else:
+                board.set_square(Location(i, j), None)
 
 
 def to_fen(board: Board) -> str:
     placement_string = ""
     for i, rank in enumerate(board.board):
         empty_counter = 0
-        for j in rank:
+        for j in range(len(rank)):
             piece: Optional[Piece] = board.get_piece(Location(i, j))
             if piece is None:
                 empty_counter += 1
