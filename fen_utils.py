@@ -54,7 +54,7 @@ def to_fen(board: Board) -> str:
     for i, rank in enumerate(board.board):
         empty_counter = 0
         for j in range(len(rank)):
-            piece: Optional[Piece] = board.get_piece(Location(i, j))
+            piece: Optional[Piece] = board.get_square(Location(i, j))
             if piece is None:
                 empty_counter += 1
             else:

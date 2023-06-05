@@ -1,8 +1,10 @@
+from itertools import permutations, product
 import numpy as np
 import numpy.typing as npt
-from typing import Generator, Optional, Any
+from typing import Generator, Optional, Any, Union, Tuple
 
 from engine_types import Location, Move, MoveType, Piece, Color, PieceType
+from config import BOARD_SIZE
 
 
 class Board:
@@ -15,7 +17,7 @@ class Board:
         3: Whether the square is occupied
     """
     def __init__(self) -> None:
-        self.board: npt.NDArray[np.int8] = np.full(shape=(8, 8, 4), fill_value=0, dtype=np.int8)
+        self.board: npt.NDArray[np.int8] = np.full(shape=(BOARD_SIZE, BOARD_SIZE, 4), fill_value=0, dtype=np.int8)
         self.active_color = Color.WHITE
 
     def execute_move(self, move: Move) -> None:
@@ -44,7 +46,7 @@ class Board:
         elif self[location][3] != 0:
             self[location] = 0
 
-    def get_piece(self, location: Location) -> Optional[Piece]:
+    def get_square(self, location: Location) -> Optional[Piece]:
         square: npt.NDArray[np.int8] = self[location]
         if square[3] == 0:
             return None
@@ -61,6 +63,10 @@ class Board:
     def __setitem__(self, location: Location, value: Any) -> None:
         self.board[location.i, location.j] = value
 
+    @staticmethod
+    def is_in_bounds(location: Union[Location, Tuple[int, int]]) -> bool:
+        return 0 <= location[0] < BOARD_SIZE and 0 <= location[1] < BOARD_SIZE
+
 
 def pawn_moves(board: Board, location: Location) -> Generator[Move, None, None]:
     color = board[location][0]  # TODO: find better way to abstract piece vector
@@ -69,21 +75,39 @@ def pawn_moves(board: Board, location: Location) -> Generator[Move, None, None]:
     yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
 
 
-def knight_moves(board: Board, location: Location) -> Generator[Move, None, None]:
+def knight_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
+    deltas = [-2, -1, 1, 2]
+    destination_gen: Generator[Location, None, None] = (
+        location+v for v in permutations(deltas, 2) if abs(v[0]) != abs(v[1])
+    )
+    for destination in filter(Board.is_in_bounds, destination_gen):
+        target: Optional[Piece] = board.get_square(destination)
+        if target is None:
+            yield Move(location, destination, MoveType.PASSING)
+        elif target.color != color:
+            yield Move(location, destination, MoveType.CAPTURE)
+
+
+def bishop_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
     yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
 
 
-def bishop_moves(board: Board, location: Location) -> Generator[Move, None, None]:
+def rook_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
     yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
 
 
-def rook_moves(board: Board, location: Location) -> Generator[Move, None, None]:
+def queen_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
     yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
 
 
-def queen_moves(board: Board, location: Location) -> Generator[Move, None, None]:
-    yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
-
-
-def king_moves(board: Board, location: Location) -> Generator[Move, None, None]:
-    yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
+def king_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
+    deltas = [-1, 0, 1]
+    destination_gen: Generator[Location, None, None] = (
+        location+v for v in product(deltas, deltas) if v != (0, 0)
+    )
+    for destination in filter(Board.is_in_bounds, destination_gen):
+        target: Optional[Piece] = board.get_square(destination)
+        if target is None:
+            yield Move(location, destination, MoveType.PASSING)
+        elif target.color != color:
+            yield Move(location, destination, MoveType.CAPTURE)
