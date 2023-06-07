@@ -47,11 +47,11 @@ class Board:
         :param location: The location to place the piece.
         """
         if piece:
-            if self[location][3] == 1:
+            if self.board[location][3] == 1:
                 raise ValueError(f"{location} already occupied.")
-            self[location] = np.array([piece.color, piece.type, 0, 1], dtype=np.int8)
-        elif self[location][3] != 0:
-            self[location] = 0
+            self.board[location] = np.array([piece.color, piece.type, 0, 1], dtype=np.int8)
+        elif self.board[location][3] != 0:
+            self.board[location] = np.array([0,0,0,0],dtype=np.int8)
 
     def get_square(self, location: Location) -> Optional[Piece]:
         square: npt.NDArray[np.int8] = self[location]

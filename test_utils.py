@@ -7,26 +7,36 @@ import numpy as np
 class TestUtils(unittest.TestCase):
 
     TEST_TO_FEN =[
-      (np.fromfile("test_data.txt"),"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+      (np.load("test_data.npy",allow_pickle=True),"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
     ]
     TEST_TO_FEN_FAIL = [
-      (np.fromfile("test_data_fail.txt"))
+      (np.load("test_data.npy",allow_pickle=True))
     ]
     TEST_FROM_FEN=[
-      ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",np.fromfile("test_data.txt"))
+      ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",np.load("test_data.npy",allow_pickle=True))
     ]
     TEST_FROM_FEN_FAIL=[
       ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/8")
     ]
     def test_to_fen(self):
-      pass
+      for input, output in self.TEST_TO_FEN:
+        board = Board()
+        board.board = input
+        fen_string=to_fen(board)
+        self.assertEqual(fen_string, output)
 
     def test_to_fen_invalid(self):
       pass
 
     def test_from_fen(self):
-      pass
+      for input, output in self.TEST_TO_FEN:
+        board = Board()
+        from_fen(board,input)
+        self.assertEqual(board.board,output)
 
     def test_from_fen_invalid(self):
-      with self.assertRaises(ValueError):
-        from_fen(Board(), "")
+      for input in self.TEST_TO_FEN_FAIL:
+        board = Board()
+        with self.assertRaises(ValueError):
+          from_fen(board,input)
+
