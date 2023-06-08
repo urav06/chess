@@ -1,10 +1,11 @@
-from itertools import permutations, product
+from itertools import permutations, product, chain
+from typing import Any, Generator, Optional, Tuple, Union
+
 import numpy as np
 import numpy.typing as npt
-from typing import Generator, Optional, Any, Union, Tuple
 
-from engine_types import Location, Move, MoveType, Piece, Color, PieceType
 from config import BOARD_SIZE
+from engine_types import Color, Location, Move, MoveType, Piece, PieceType, Vector
 
 
 class Board:
@@ -17,13 +18,16 @@ class Board:
         3: Whether the square is occupied
     """
     def __init__(self) -> None:
-        self.board: npt.NDArray[np.int8] = np.full(shape=(BOARD_SIZE, BOARD_SIZE, 4), fill_value=0, dtype=np.int8)
+        self.board: npt.NDArray[np.int8] = np.full(
+            shape=(BOARD_SIZE, BOARD_SIZE, 4), fill_value=0, dtype=np.int8
+        )
         self.active_color = Color.WHITE
 
     def execute_move(self, move: Move) -> None:
         if move.type is MoveType.PASSING:
             self[move.end] = self[move.start]
             self[move.start] = 0
+            self[move.end][2] = 1
 
         elif move.type is MoveType.CAPTURE:
             pass
@@ -50,8 +54,7 @@ class Board:
         square: npt.NDArray[np.int8] = self[location]
         if square[3] == 0:
             return None
-        else:
-            return Piece(Color(square[0]), PieceType(square[1]))
+        return Piece(Color(square[0]), PieceType(square[1]))
 
     def get_legal_moves(self) -> list[Move]:
         # TODO: rename better + maybe this will be a generator + optimize
@@ -89,11 +92,23 @@ def knight_moves(board: Board, location: Location, color: Color) -> Generator[Mo
 
 
 def bishop_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-    yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
+    for move in chain(
+        slide_moves(board, location, color, Vector(1, 1)),
+        slide_moves(board, location, color, Vector(1, -1)),
+        slide_moves(board, location, color, Vector(-1, 1)),
+        slide_moves(board, location, color, Vector(-1, -1)),
+    ):
+        yield move
 
 
 def rook_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-    yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
+    for move in chain(
+        slide_moves(board, location, color, Vector(0, 1)),
+        slide_moves(board, location, color, Vector(0, -1)),
+        slide_moves(board, location, color, Vector(1, 0)),
+        slide_moves(board, location, color, Vector(-1, 0)),
+    ):
+        yield move
 
 
 def queen_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
@@ -111,3 +126,19 @@ def king_moves(board: Board, location: Location, color: Color) -> Generator[Move
             yield Move(location, destination, MoveType.PASSING)
         elif target.color != color:
             yield Move(location, destination, MoveType.CAPTURE)
+
+
+def slide_moves(
+    board: Board, location: Location, color: Color, direction: Vector
+) -> Generator[Move, None, None]:
+    step = 1
+    while Board.is_in_bounds(destination := location+(direction*step)):
+        target: Optional[Piece] = board.get_square(destination)
+        if target is None:
+            yield Move(location, destination, MoveType.PASSING)
+            step += 1
+        elif target.color != color:
+            yield Move(location, destination, MoveType.CAPTURE)
+            break
+        elif target.color == color:
+            break
