@@ -31,6 +31,17 @@ class Vector(NamedTuple):
         raise NotImplementedError(f"Can't multiply Vector and {type(__value)}")
 
 
+class Direction(Vector, Enum):
+    N = Vector(-1, 0)
+    S = Vector(1, 0)
+    E = Vector(0, 1)
+    W = Vector(0, -1)
+    NE = Vector(-1, 1)
+    NW = Vector(-1, -1)
+    SE = Vector(1, 1)
+    SW = Vector(1, -1)
+
+
 class MoveType(Enum):
     PASSING = auto()
     CAPTURE = auto()
@@ -60,3 +71,7 @@ class PieceType(IntEnum):
 class Piece(NamedTuple):
     color: Color
     type: PieceType
+
+
+PARALLEL_DIRECTIONS = [Direction.N, Direction.S, Direction.E, Direction.W]
+DIAGONAL_DIRECTIONS = [Direction.NE, Direction.NW, Direction.SE, Direction.SW]

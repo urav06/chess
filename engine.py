@@ -1,11 +1,14 @@
-from itertools import permutations, product, chain
-from typing import Any, Generator, Optional, Tuple, Union
+from itertools import chain, permutations, product
+from typing import Any, Generator, List, Optional, Tuple, Union
 
 import numpy as np
 import numpy.typing as npt
 
-from config import BOARD_SIZE
-from engine_types import Color, Location, Move, MoveType, Piece, PieceType, Vector
+from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
+from engine_types import (
+    DIAGONAL_DIRECTIONS, PARALLEL_DIRECTIONS, Color, Direction,
+    Location, Move, MoveType, Piece, PieceType
+)
 
 
 class Board:
@@ -60,18 +63,32 @@ class Board:
         # TODO: rename better + maybe this will be a generator + optimize
         return []
 
+    @staticmethod
+    def is_in_bounds(location: Union[Location, Tuple[int, int]]) -> bool:
+        return 0 <= location[0] < BOARD_SIZE and 0 <= location[1] < BOARD_SIZE
+
     def __getitem__(self, location: Location) -> npt.NDArray[np.int8]:
         return self.board[location.i, location.j, :]
 
     def __setitem__(self, location: Location, value: Any) -> None:
         self.board[location.i, location.j] = value
 
-    @staticmethod
-    def is_in_bounds(location: Union[Location, Tuple[int, int]]) -> bool:
-        return 0 <= location[0] < BOARD_SIZE and 0 <= location[1] < BOARD_SIZE
+    def __str__(self) -> str:
+        visual: str = ""
+        for i, j in product(range(BOARD_SIZE), range(BOARD_SIZE)):
+            if (piece := self.get_square(Location(i, j))):
+                visual += f" {UNICODE_PIECES[piece.type.name][piece.color.name]} "
+            else:
+                square_color = Color.BLACK if (i % 2 == 0) ^ (j % 2 == 0) else Color.WHITE
+                visual += f" {UNICODE_SQUARE[square_color.name]} "
+            if j == BOARD_SIZE - 1:
+                visual += "\n"
+        return visual
+
+    __repr__ = __str__
 
 
-def pawn_moves(board: Board, location: Location) -> Generator[Move, None, None]:
+def pawn_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
     color = board[location][0]  # TODO: find better way to abstract piece vector
     if color == 0:
         pass
@@ -92,27 +109,22 @@ def knight_moves(board: Board, location: Location, color: Color) -> Generator[Mo
 
 
 def bishop_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-    for move in chain(
-        slide_moves(board, location, color, Vector(1, 1)),
-        slide_moves(board, location, color, Vector(1, -1)),
-        slide_moves(board, location, color, Vector(-1, 1)),
-        slide_moves(board, location, color, Vector(-1, -1)),
-    ):
-        yield move
+    yield from chain.from_iterable(
+        slide_moves(board, location, color, d) for d in DIAGONAL_DIRECTIONS
+    )
 
 
 def rook_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-    for move in chain(
-        slide_moves(board, location, color, Vector(0, 1)),
-        slide_moves(board, location, color, Vector(0, -1)),
-        slide_moves(board, location, color, Vector(1, 0)),
-        slide_moves(board, location, color, Vector(-1, 0)),
-    ):
-        yield move
+    yield from chain.from_iterable(
+        slide_moves(board, location, color, d) for d in PARALLEL_DIRECTIONS
+    )
 
 
 def queen_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-    yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)
+    directions: List[Direction] = PARALLEL_DIRECTIONS + DIAGONAL_DIRECTIONS
+    yield from chain.from_iterable(
+        slide_moves(board, location, color, d) for d in directions
+    )
 
 
 def king_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
@@ -129,7 +141,7 @@ def king_moves(board: Board, location: Location, color: Color) -> Generator[Move
 
 
 def slide_moves(
-    board: Board, location: Location, color: Color, direction: Vector
+    board: Board, location: Location, color: Color, direction: Direction
 ) -> Generator[Move, None, None]:
     step = 1
     while Board.is_in_bounds(destination := location+(direction*step)):
