@@ -1,6 +1,6 @@
 import unittest
 
-from engine import Board
+from engine import Board, knight_moves
 from engine_types import Move, MoveType, Location, Color
 from fen_utils import to_fen, from_fen
 import numpy as np
@@ -11,20 +11,38 @@ class TestEngine(unittest.TestCase):
 
     TEST_EXECUTE_MOVE = {
         "PASSING": [
-            ("rnbqkb1r/pppppppp/8/2n5/8/8/PPPPPPPP/RNBQKBNR", Move((6, 5), (4, 5), MoveType.PASSING), "rnbqkb1r/pppppppp/8/2n5/5P2/8/PPPPP1PP/RNBQKBNR"),
-            ("rnbqkb1r/pppppppp/8/2n5/8/8/PPPPPPPP/RNBQKBNR", Move((3,2),(5,3),MoveType.PASSING), "rnbqkb1r/pppppppp/8/8/8/3n4/PPPPPPPP/RNBQKBNR"),
-            ("rnbqkb1r/pppppppp/8/8/8/3n4/PPPPPPPP/RNBQKBNR",Move((6,2),(4,2),MoveType.PASSING),"rnbqkb1r/pppppppp/8/8/2P5/3n4/PP1PPPPP/RNBQKBNR")
+            ("rnbqkb1r/pppppppp/8/2n5/8/8/PPPPPPPP/RNBQKBNR", Move(Location(6, 5),Location(4, 5), MoveType.PASSING), "rnbqkb1r/pppppppp/8/2n5/5P2/8/PPPPP1PP/RNBQKBNR"),
+            ("rnbqkb1r/pppppppp/8/2n5/8/8/PPPPPPPP/RNBQKBNR", Move(Location(3,2),Location(5,3),MoveType.PASSING), "rnbqkb1r/pppppppp/8/8/8/3n4/PPPPPPPP/RNBQKBNR"),
+            ("rnbqkb1r/pppppppp/8/8/8/3n4/PPPPPPPP/RNBQKBNR",Move(Location(6,2),Location(4,2),MoveType.PASSING),"rnbqkb1r/pppppppp/8/8/2P5/3n4/PP1PPPPP/RNBQKBNR")
         ]
     }
-    TEST_KNIGHT_MOVE = {
-        np.load("test_knight_1.npy"): [(1, 2), (2, 1)],
-        np.load("test_knight_2.npy"): [(1, 6), (1, 2), (2, 5), (2, 3)],
-        np.load("test_knight_3.npy"): [(1, 5), (1, 3), (2, 6), (2, 2), (4, 6), (4, 2), (5, 5), (5, 3)],
-        np.load("test_knight_4.npy"): [(2, 4), (2, 2), (3, 5), (3, 1), (5, 5), (5, 1), (6, 4), (6, 2)]
-    }
-    TEST_BISHOP_MOVE = {
+    TEST_KNIGHT_MOVE = [
+            ("N7/8/8/8/8/8/8/8",(0,0),[Move(Location(0,0),Location(1,2),MoveType.PASSING),
+                                 Move(Location(0, 0), Location(2, 1), MoveType.PASSING)]),
+            ("N7/8/1p6/8/8/8/8/8",(0,0), [Move(Location(0, 0), Location(2, 1), MoveType.CAPTURE),
+                                  Move(Location(0, 0), Location(1, 2), MoveType.PASSING)] ),
+            (" N7 / 2P5 / 1P6 / 8 / 8 / 8 / 8 / 8",(0,0),[]),
+            ("8/8/8/3N4/8/8/8/8",(3,4),[ Move(Location(3, 4), Location(1, 5), MoveType.PASSING),
+                                   Move(Location(3, 4), Location(1, 3), MoveType.PASSING),
+                                   Move(Location(3, 4), Location(2, 6), MoveType.PASSING),
+                                   Move(Location(3, 4), Location(2, 2), MoveType.PASSING),
+                                   Move(Location(3, 4), Location(4, 6), MoveType.PASSING),
+                                   Move(Location(3, 4), Location(4, 2), MoveType.PASSING),
+                                   Move(Location(3, 4), Location(5, 5), MoveType.PASSING),
+                                   Move(Location(3, 4), Location(5, 3), MoveType.PASSING)]),
+            # ("8/8/1r6/2N5/8/8/P1B5/1KR5",(2,4),[Move(Location(2, 4), Location(1, 6), MoveType.PASSING),
+            #                               Move(Location(2,4),Location(1,2),MoveType.CAPTURE)]),
+            # ("8/8/1r6/2N5/8/8/P1B5/1KR5",(2,3),[Move(Location(2,3),Location(1,5),MoveType.PASSING)]),
+            # ("8/8/1r6/2N5/8/8/P1B5/1KR5",(2,3),[]),
 
-    }
+        ]
+    TEST_BISHOP_MOVE = [
+      ("B7/8/8/8/8/8/8/8",),
+      ("8/8/8/8/8/8/8/B7",),
+      ("8/8/8/8/3B4/8/8/8",),
+      ("8/8/8/3B4/8/8/8/8 ")
+    ]
+
     TEST_KING_MOVE = {
 
     }
@@ -55,8 +73,6 @@ class TestEngine(unittest.TestCase):
             from_fen(board, test_case[0])
             board.execute_move(test_case[1])
             fen_string = to_fen(board)
-            print("Test case is",test_case)
-            print("Final output is",fen_string)
             self.assertEqual(fen_string, test_case[2])
 
     def test_get_legal_moves(self) -> None:
@@ -67,7 +83,13 @@ class TestEngine(unittest.TestCase):
         pass
 
     def test_knight_moves(self) -> None:
-        pass
+        for input,loc,output in self.TEST_KNIGHT_MOVE:
+          board = Board()
+          from_fen(board,input)
+          calc_output =list(knight_moves(board,Location(*loc),Color.WHITE))
+          calculated_output = set(calc_output)
+          actual_output = set(output)
+          self.assertSetEqual(actual_output,calculated_output)
 
     def test_bishop_moves(self) -> None:
         pass
