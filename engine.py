@@ -30,7 +30,7 @@ class Board:
         if move.type is MoveType.PASSING:
             self[move.end] = self[move.start]
             self[move.start] = 0
-            self[move.end][2] = 1
+            self[move.end.i, move.end.j, 2] = 1
 
         elif move.type is MoveType.CAPTURE:
             pass
@@ -47,17 +47,19 @@ class Board:
         :param location: The location to place the piece.
         """
         if piece:
-            if self.board[location][3] == 1:
+            if self[location.i, location.j, 3] == 1:
                 raise ValueError(f"{location} already occupied.")
-            self.board[location] = np.array([piece.color, piece.type, 0, 1], dtype=np.int8)
-        elif self.board[location][3] != 0:
-            self.board[location] = np.array([0,0,0,0],dtype=np.int8)
+            self[location] = np.array([piece.color, piece.type, 0, 1], dtype=np.int8)
+        elif self[location.i, location.j, 3] != 0:
+            self[location] = 0
 
     def get_square(self, location: Location) -> Optional[Piece]:
-        square: npt.NDArray[np.int8] = self[location]
-        if square[3] == 0:
+        if self[location.i, location.j, 3] == 0:
             return None
-        return Piece(Color(square[0]), PieceType(square[1]))
+        return Piece(
+            Color(int(self[location.i, location.j, 0])),
+            PieceType(int(self[location.i, location.j, 1]))
+        )
 
     def get_legal_moves(self) -> list[Move]:
         # TODO: rename better + maybe this will be a generator + optimize
@@ -67,11 +69,22 @@ class Board:
     def is_in_bounds(location: Union[Location, Tuple[int, int]]) -> bool:
         return 0 <= location[0] < BOARD_SIZE and 0 <= location[1] < BOARD_SIZE
 
-    def __getitem__(self, location: Location) -> npt.NDArray[np.int8]:
-        return self.board[location.i, location.j, :]
+    def __getitem__(self, *args: Any) -> npt.NDArray[np.int8]:
+        # TODO: Improve further as a passover function
+        if len(args[0]) == 2:
+            return self.board[args[0][0], args[0][1], ...]
+        if len(args[0]) == 3:
+            return self.board[args[0][0], args[0][1], args[0][2], ...]
+        raise Exception(f"Invalid index {args[0]} for Board.")
 
-    def __setitem__(self, location: Location, value: Any) -> None:
-        self.board[location.i, location.j] = value
+    def __setitem__(self, *args: Any) -> None:
+        # TODO: Improve further as a passover function
+        if len(args[0]) == 2:
+            self.board[args[0][0], args[0][1]] = args[1]
+        elif len(args[0]) == 3:
+            self.board[args[0][0], args[0][1], args[0][2]] = args[1]
+        else:
+            raise Exception(f"Invalid index {args[0]} for Board.")
 
     def __str__(self) -> str:
         visual: str = ""

@@ -5,7 +5,7 @@ from engine import Board
 from engine_types import Color, Location, Piece, PieceType
 
 FEN_MAPPING: Dict[str, Piece] = {
-    "p": Piece(Color.BLACK, PieceType.ROOK),
+    "p": Piece(Color.BLACK, PieceType.PAWN),
     "r": Piece(Color.BLACK, PieceType.ROOK),
     "n": Piece(Color.BLACK, PieceType.KNIGHT),
     "b": Piece(Color.BLACK, PieceType.BISHOP),
