@@ -36,6 +36,8 @@ class Board:
             pass
         elif move.type is MoveType.CASTLE:
             pass
+        elif move.type is MoveType.PROMOTION:
+            pass
         else:
             raise ValueError(f'Unknown move type: {move.type}')
 

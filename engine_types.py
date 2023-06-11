@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum, IntEnum, auto
-from typing import NamedTuple, Union, Tuple, Any
+from typing import NamedTuple, Union, Tuple, Any, Optional
 from typing_extensions import SupportsIndex
 
 
@@ -26,9 +26,7 @@ class Vector(NamedTuple):
         raise NotImplementedError(f"Can't multiply Vector and {type(__value)}")
 
     def __rmul__(self, __value: Union[SupportsIndex, int]) -> Vector:
-        if isinstance(__value, int):
-            return Vector(self.i*__value, self.j*__value)
-        raise NotImplementedError(f"Can't multiply Vector and {type(__value)}")
+        return self.__mul__(__value)
 
 
 class Direction(Vector, Enum):
@@ -42,16 +40,18 @@ class Direction(Vector, Enum):
     SW = Vector(1, -1)
 
 
-class MoveType(Enum):
+class MoveType(IntEnum):
     PASSING = auto()
     CAPTURE = auto()
     CASTLE = auto()
+    PROMOTION = auto()
 
 
 class Move(NamedTuple):
     start: Location
     end: Location
     type: MoveType
+    promotion_rank: Optional[PieceType] = None
 
 
 class Color(IntEnum):
