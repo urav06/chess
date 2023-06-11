@@ -1,5 +1,4 @@
-from engine import Board
-from fen_utils import from_fen, to_fen
+from engine import Board, from_fen, to_fen
 
 
 def classic_setup(board: Board) -> None:

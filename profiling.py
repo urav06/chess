@@ -1,5 +1,4 @@
-from engine import Board
-from engine_types import Color
+from engine import Board, Color
 from main import classic_setup
 import random
 import cProfile

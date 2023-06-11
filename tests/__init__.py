@@ -1,5 +1,5 @@
 """
-Unittest package for this project.
+Unittests for this project.
 
 Run using: `python -m unittest tests`
 """

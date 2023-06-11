@@ -1,8 +1,8 @@
 from typing import Dict, List, Optional
 
 from config import BOARD_SIZE
-from engine import Board
-from engine_types import Color, Location, Piece, PieceType
+from engine.board import Board
+from engine.types import Color, Location, Piece, PieceType
 
 FEN_MAPPING: Dict[str, Piece] = {
     "p": Piece(Color.BLACK, PieceType.PAWN),

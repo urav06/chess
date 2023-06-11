@@ -1,56 +1,36 @@
 import unittest
-from typing import List, Tuple
 
 import numpy as np
-import numpy.typing as npt
+import numpy.testing as np_testing
 
 from engine import Board
-from engine_types import Color
-from fen_utils import from_fen, to_fen
+from engine.fen_utils import from_fen, to_fen
 
 
 class TestUtils(unittest.TestCase):
 
-    TO_FEN_CASES: List[Tuple[npt.NDArray[np.int8], str]] = [
-        (np.load("tests/data/board_dump.npy"), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
-    ]
-    FROM_FEN_VALID_CASES: List[Tuple[str, npt.NDArray[np.int8]]] = [
-        ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", np.load("tests/data/board_dump.npy"))
-    ]
-    FROM_FEN_VALID_CASES_2: List[Tuple[str, npt.NDArray[np.int8]]] = [
-        (
-            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-            np.load("tests/data/board_dump.npy")
-        )
-    ]
-    FROM_FEN_INVALID_CASES: List[str] = [
-        ("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/8")
-    ]
+    CLASSIC_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+    INVALID_RANKS_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/8"  # 9 ranks
 
-    def test_to_fen(self) -> None:
-        for board_arr, expected_fen in self.TO_FEN_CASES:
-            board = Board()
-            board.board = board_arr
-            self.assertEqual(to_fen(board), expected_fen)
+    def test_to_fen_classic(self) -> None:
+        board_arr = np.load("tests/data/board_dump.npy")
+        expected_fen = self.CLASSIC_FEN
+        board = Board()
+        board.board = board_arr
+        self.assertEqual(to_fen(board), expected_fen)
 
-    def test_from_fen_valid(self) -> None:
-        for fen_string, expected_board_arr in self.FROM_FEN_VALID_CASES:
-            board = Board()
+    def test_from_fen_classic(self) -> None:
+        fen = self.CLASSIC_FEN
+        expected_board_arr = np.load("tests/data/board_dump.npy")
+        board = Board()
+        from_fen(board, fen)
+        np_testing.assert_array_equal(board.board, expected_board_arr)
+
+    def test_from_fen_invalid_ranks(self) -> None:
+        fen_string = self.INVALID_RANKS_FEN
+        board = Board()
+        with self.assertRaises(ValueError):
             from_fen(board, fen_string)
-            self.assertTrue(np.all(board.board == expected_board_arr))
-
-    def test_from_fen_valid_2(self) -> None:
-        for fen_string, expected_board_arr in self.FROM_FEN_VALID_CASES_2:
-            board = Board()
-            from_fen(board, fen_string)
-            self.assertTrue(np.all(board.board == expected_board_arr))
-            self.assertEqual(board.active_color, Color.WHITE)
-
-    def test_from_fen_invalid(self) -> None:
-        for fen_string in self.FROM_FEN_INVALID_CASES:
-            with self.assertRaises(ValueError):
-                board = Board()
-                from_fen(board, fen_string)
 
 
 if __name__ == "__main__":

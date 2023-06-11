@@ -1,8 +1,8 @@
 import unittest
 
 from engine import Board, knight_moves
-from engine_types import Move, MoveType, Location, Color
-from fen_utils import to_fen, from_fen
+from engine.types import Move, MoveType, Location, Color
+from engine.fen_utils import to_fen, from_fen
 import numpy as np
 
 
