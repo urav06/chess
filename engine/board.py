@@ -62,10 +62,6 @@ class Board:
             PieceType(int(self[location.i, location.j, 1]))
         )
 
-    def get_legal_moves(self) -> list[Move]:
-        # TODO: rename better + maybe this will be a generator + optimize
-        return []
-
     @staticmethod
     def is_in_bounds(location: Union[Location, Tuple[int, int]]) -> bool:
         return 0 <= location[0] < BOARD_SIZE and 0 <= location[1] < BOARD_SIZE
