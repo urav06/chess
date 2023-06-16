@@ -1,10 +1,10 @@
 from itertools import chain, permutations, product
-from typing import Generator, List, Optional
+from typing import Generator, List, Optional, Dict, Callable
 
 from engine.board import Board
 from engine.types import (
     DIAGONAL_DIRECTIONS, PARALLEL_DIRECTIONS, Color,
-    Direction, Location, Move, MoveType, Piece
+    Direction, Location, Move, MoveType, Piece, PieceType
 )
 
 
@@ -74,3 +74,15 @@ def slide_moves(
             break
         elif target.color == color:
             break
+
+
+PIECE_LOGIC_MAP: Dict[
+    PieceType, Callable[[Board, Location, Color], Generator[Move, None, None]]
+] = {
+    PieceType.PAWN: pawn_moves,
+    PieceType.KNIGHT: knight_moves,
+    PieceType.BISHOP: bishop_moves,
+    PieceType.ROOK: rook_moves,
+    PieceType.QUEEN: queen_moves,
+    PieceType.KING: king_moves
+}

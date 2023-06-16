@@ -6,7 +6,7 @@ import numpy.typing as npt
 
 from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
 from engine.types import (
-    Color, Location, Move, MoveType, Piece, PieceType
+    Color, Location, Piece, PieceType
 )
 
 
@@ -23,22 +23,6 @@ class Board:
         self.board: npt.NDArray[np.int8] = np.full(
             shape=(BOARD_SIZE, BOARD_SIZE, 4), fill_value=0, dtype=np.int8
         )
-        self.active_color = Color.WHITE
-
-    def execute_move(self, move: Move) -> None:
-        if move.type is MoveType.PASSING:
-            self[move.end] = self[move.start]
-            self[move.start] = 0
-            self[move.end.i, move.end.j, 2] = 1
-
-        elif move.type is MoveType.CAPTURE:
-            pass
-        elif move.type is MoveType.CASTLE:
-            pass
-        elif move.type is MoveType.PROMOTION:
-            pass
-        else:
-            raise ValueError(f'Unknown move type: {move.type}')
 
     def set_square(self, location: Location, piece: Optional[Piece]) -> None:
         """
@@ -61,6 +45,9 @@ class Board:
             Color(int(self[location.i, location.j, 0])),
             PieceType(int(self[location.i, location.j, 1]))
         )
+
+    def clear(self) -> None:
+        self.board.fill(0)
 
     @staticmethod
     def is_in_bounds(location: Union[Location, Tuple[int, int]]) -> bool:
