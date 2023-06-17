@@ -58,6 +58,9 @@ class Color(IntEnum):
     BLACK = auto()  # Starts with 1
     WHITE = auto()
 
+    def __invert__(self) -> Color:
+        return Color.WHITE if self is Color.BLACK else Color.BLACK
+
 
 class PieceType(IntEnum):
     PAWN = auto()  # Starts with 1

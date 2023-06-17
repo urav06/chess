@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import List, Tuple, Generator
+from typing import List, Tuple, Generator, Optional
 
 from engine.board import Board
 from engine.types import Piece, Location, Color, Move, MoveType
@@ -15,7 +15,14 @@ class Game:
 
     @property
     def active_color_pieces(self) -> List[Tuple[Piece, Location]]:
-        return list(filter(lambda x: x[0].color is self.active_color, self.active_pieces))
+        return self.filter_color_pieces(self.active_color)
+
+    @property
+    def inactive_color_pieces(self) -> List[Tuple[Piece, Location]]:
+        return self.filter_color_pieces(~self.active_color)
+
+    def filter_color_pieces(self, color: Color) -> List[Tuple[Piece, Location]]:
+        return list(filter(lambda x: x[0].color is color, self.active_pieces))
 
     def reset(self) -> None:
         self.board.clear()
@@ -41,7 +48,8 @@ class Game:
             raise ValueError(f'Unknown move type: {move.type}')
         self.board[move.end.i, move.end.j, 2] = 1  # Set piece_has_moved
 
-    def legal_moves(self) -> Generator[Move, None, None]:
+    def legal_moves(self, color: Optional[Color] = None) -> Generator[Move, None, None]:
+        pieces = self.filter_color_pieces(color) if color else self.active_color_pieces
         yield from chain.from_iterable(
-            PIECE_LOGIC_MAP[p[0].type](self.board, p[1], self.active_color) for p in self.active_color_pieces
+            PIECE_LOGIC_MAP[p[0].type](self.board, p[1], self.active_color) for p in pieces
         )
