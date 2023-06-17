@@ -53,22 +53,15 @@ class Board:
     def is_in_bounds(location: Union[Location, Tuple[int, int]]) -> bool:
         return 0 <= location[0] < BOARD_SIZE and 0 <= location[1] < BOARD_SIZE
 
-    def __getitem__(self, *args: Any) -> npt.NDArray[np.int8]:
-        # TODO: Improve further as a passover function
-        if len(args[0]) == 2:
-            return self.board[args[0][0], args[0][1], ...]
-        if len(args[0]) == 3:
-            return self.board[args[0][0], args[0][1], args[0][2], ...]
+    def __getitem__(self, *args: Any, **kwargs) -> npt.NDArray[np.int8]:
+        if 2 <= len(args[0]) <= 3:
+            return self.board.__getitem__((*args[0], Ellipsis))
         raise Exception(f"Invalid index {args[0]} for Board.")
 
     def __setitem__(self, *args: Any) -> None:
-        # TODO: Improve further as a passover function
-        if len(args[0]) == 2:
-            self.board[args[0][0], args[0][1]] = args[1]
-        elif len(args[0]) == 3:
-            self.board[args[0][0], args[0][1], args[0][2]] = args[1]
-        else:
-            raise Exception(f"Invalid index {args[0]} for Board.")
+        if 2 <= len(args[0]) <= 3:
+            return self.board.__setitem__(*args)
+        raise Exception(f"Invalid index {args[0]} for Board.")
 
     def __str__(self) -> str:
         visual: str = ""
