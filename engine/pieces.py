@@ -1,3 +1,7 @@
+"""
+Movement logic of all the pieces
+"""
+
 from itertools import chain, permutations, product
 from typing import Generator, List, Optional, Dict, Callable
 
@@ -9,7 +13,7 @@ from engine.types import (
 
 
 def pawn_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-    color = board[location][0]  # TODO: find better way to abstract piece vector
+    color = board[location][0]
     if color == 0:
         pass
     yield Move(Location(0, 0), Location(0, 0), MoveType.PASSING)

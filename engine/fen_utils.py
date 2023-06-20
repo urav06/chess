@@ -1,3 +1,7 @@
+"""
+Utils to load and save FEN strings
+"""
+
 from typing import Dict, List, Optional
 
 from config import BOARD_SIZE

@@ -1,0 +1,9 @@
+[tool.mypy]
+strict=true
+allow_untyped_calls=true  # Allowing calls to external libraries which may not be typed
+
+[tool.pylint.messages-control]
+disable=[
+    "C0116", # 'mising-function-docstring'
+    "C0115" # 'mising-class-docstring'
+]

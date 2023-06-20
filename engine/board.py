@@ -1,3 +1,7 @@
+"""
+Board Class
+"""
+
 from itertools import product
 from typing import Any, Optional, Tuple, Union
 
@@ -53,15 +57,16 @@ class Board:
     def is_in_bounds(location: Union[Location, Tuple[int, int]]) -> bool:
         return 0 <= location[0] < BOARD_SIZE and 0 <= location[1] < BOARD_SIZE
 
-    def __getitem__(self, *args: Any, **kwargs) -> npt.NDArray[np.int8]:
+    def __getitem__(self, *args: Any) -> npt.NDArray[np.int8]:
         if 2 <= len(args[0]) <= 3:
             return self.board.__getitem__((*args[0], Ellipsis))
-        raise Exception(f"Invalid index {args[0]} for Board.")
+        raise IndexError(f"Invalid index {args[0]} for Board.")
 
     def __setitem__(self, *args: Any) -> None:
         if 2 <= len(args[0]) <= 3:
-            return self.board.__setitem__(*args)
-        raise Exception(f"Invalid index {args[0]} for Board.")
+            self.board.__setitem__(*args)
+        else:
+            raise IndexError(f"Invalid index {args[0]} for Board.")
 
     def __str__(self) -> str:
         visual: str = ""

@@ -1,3 +1,6 @@
+"""
+Types used in the Chess engine.
+"""
 from __future__ import annotations
 from enum import Enum, IntEnum, auto
 from typing import NamedTuple, Union, Tuple, Any, Optional

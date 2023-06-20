@@ -1,3 +1,7 @@
+"""
+Game Class
+"""
+
 from itertools import chain
 from typing import List, Tuple, Generator, Optional
 
@@ -7,7 +11,10 @@ from engine.pieces import PIECE_LOGIC_MAP
 
 
 class Game:
-
+    """
+    Game is a match of chess between Black and White.
+    This class provides an interface between the players and the game.
+    """
     def __init__(self) -> None:
         self.board = Board()
         self.active_pieces: List[Tuple[Piece, Location]] = []
