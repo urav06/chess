@@ -8,7 +8,7 @@ from typing import Any, Optional, Tuple, Union
 import numpy as np
 import numpy.typing as npt
 
-from config import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
+from engine.constants import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
 from engine.types import (
     Color, Location, Piece, PieceType
 )

@@ -4,7 +4,7 @@ Utils to load and save FEN strings
 
 from typing import Dict, List, Optional
 
-from config import BOARD_SIZE
+from engine.constants import BOARD_SIZE
 from engine.board import Board
 from engine.game import Game
 from engine.types import Color, Location, Piece, PieceType
