@@ -1,10 +1,15 @@
+"""
+Engine Constants
+"""
+from engine.types import PieceType, Color
+
 BOARD_SIZE = 8
 UNICODE_PIECES = {
-    "PAWN": {" BLACK": "♟︎", "WHITE": "♙"},
-    "KNIGHT": {" BLACK": "♞", "WHITE": "♘"},
-    "BISHOP": {" BLACK": "♝", "WHITE": "♗"},
-    "ROOK": {" BLACK": "♜", "WHITE": "♖"},
-    "QUEEN": {" BLACK": "♛", "WHITE": "♕"},
-    "KING": {" BLACK": "♚", "WHITE": "♔"},
+    PieceType.PAWN: {Color.BLACK: "♟︎", Color.WHITE: "♙"},
+    PieceType.KNIGHT: {Color.BLACK: "♞", Color.WHITE: "♘"},
+    PieceType.BISHOP: {Color.BLACK: "♝", Color.WHITE: "♗"},
+    PieceType.ROOK: {Color.BLACK: "♜", Color.WHITE: "♖"},
+    PieceType.QUEEN: {Color.BLACK: "♛", Color.WHITE: "♕"},
+    PieceType.KING: {Color.BLACK: "♚", Color.WHITE: "♔"},
 }
-UNICODE_SQUARE = {"BLACK": "◼", "WHITE": "◻"}
+UNICODE_SQUARE = {Color.BLACK: "◼", Color.WHITE: "◻"}

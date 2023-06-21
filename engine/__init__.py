@@ -1,3 +1,7 @@
+"""
+Chess Game Engine
+"""
+
 from engine.board import Board
 from engine.game import Game
 from engine.types import Color, Location, Piece, PieceType

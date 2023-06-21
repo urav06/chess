@@ -2,7 +2,7 @@
 Utils to load and save FEN strings
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from engine.constants import BOARD_SIZE
 from engine.board import Board
@@ -50,8 +50,8 @@ def from_fen(fen_string: str, game: Game) -> None:
         for j, square_data in enumerate(rank_repr):
             if square_data != "x":
                 piece: Piece = FEN_MAPPING[square_data]
-                game.board.set_square(Location(i, j), piece)
-                game.active_pieces.append((piece, Location(i, j)))
+                game.board.place_piece(piece, (i, j))
+                game.active_pieces.add((piece, Location(i, j)))
 
 
 def to_fen(board: Board) -> str:
@@ -59,10 +59,10 @@ def to_fen(board: Board) -> str:
     for i, rank in enumerate(board.board):
         empty_counter = 0
         for j in range(len(rank)):
-            piece: Optional[Piece] = board.get_square(Location(i, j))
-            if piece is None:
+            if not board.is_occupied(i, j):
                 empty_counter += 1
             else:
+                piece: Piece = board.get_piece(i, j)
                 square_data = INV_FEN_MAPPING[piece]
                 if empty_counter != 0:
                     placement_string += f"{empty_counter}"

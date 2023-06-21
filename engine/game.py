@@ -3,7 +3,7 @@ Game Class
 """
 
 from itertools import chain
-from typing import List, Tuple, Generator, Optional
+from typing import Set, Tuple, Generator
 
 from engine.board import Board
 from engine.types import Piece, Location, Color, Move, MoveType
@@ -17,19 +17,27 @@ class Game:
     """
     def __init__(self) -> None:
         self.board = Board()
-        self.active_pieces: List[Tuple[Piece, Location]] = []
+        self.active_pieces: Set[Tuple[Piece, Location]] = set()
         self.active_color = Color.WHITE
 
-    @property
-    def active_color_pieces(self) -> List[Tuple[Piece, Location]]:
-        return self.filter_color_pieces(self.active_color)
+    def filter_color_pieces(self, color: Color) -> Set[Tuple[Piece, Location]]:
+        return set(filter(lambda x: x[0].color is color, self.active_pieces))
 
-    @property
-    def inactive_color_pieces(self) -> List[Tuple[Piece, Location]]:
-        return self.filter_color_pieces(~self.active_color)
+    def put_piece(self, location: Location, piece: Piece) -> None:
+        self.board.place_piece(piece, location)
+        self.active_pieces.add((piece, location))
 
-    def filter_color_pieces(self, color: Color) -> List[Tuple[Piece, Location]]:
-        return list(filter(lambda x: x[0].color is color, self.active_pieces))
+    def remove_piece(self, location: Location) -> None:
+        piece = self.board.get_piece(location)
+        self.board[location] = 0
+        self.active_pieces.remove((piece, location))
+
+    def move_piece(self, source: Location, destination: Location) -> None:
+        piece = self.board.get_piece(source)
+        self.board[destination] = self.board[source]
+        self.board[source] = 0
+        self.active_pieces.remove((piece, source))
+        self.active_pieces.add((piece, destination))
 
     def reset(self) -> None:
         self.board.clear()
@@ -38,14 +46,11 @@ class Game:
 
     def execute_move(self, move: Move) -> None:
         if move.type is MoveType.PASSING:
-            self.board[move.end] = self.board[move.start]
-            self.board[move.start] = 0
+            self.move_piece(move.start, move.end)
 
         elif move.type is MoveType.CAPTURE:
-            captured = self.board.get_square(move.end)
-            self.board[move.end] = self.board[move.start]
-            self.board[move.start] = 0
-            self.active_pieces.remove((captured, move.end))
+            self.remove_piece(move.end)
+            self.move_piece(move.start, move.end)
 
         elif move.type is MoveType.CASTLE:
             pass
@@ -55,8 +60,8 @@ class Game:
             raise ValueError(f'Unknown move type: {move.type}')
         self.board[move.end.i, move.end.j, 2] = 1  # Set piece_has_moved
 
-    def legal_moves(self, color: Optional[Color] = None) -> Generator[Move, None, None]:
-        pieces = self.filter_color_pieces(color) if color else self.active_color_pieces
+    def legal_moves(self, color: Color) -> Generator[Move, None, None]:
+        pieces = self.filter_color_pieces(color)
         yield from chain.from_iterable(
             PIECE_LOGIC_MAP[p[0].type](self.board, p[1], self.active_color) for p in pieces
         )

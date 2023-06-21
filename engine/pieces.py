@@ -3,12 +3,12 @@ Movement logic of all the pieces
 """
 
 from itertools import chain, permutations, product
-from typing import Generator, List, Optional, Dict, Callable
+from typing import Generator, List, Dict, Callable
 
 from engine.board import Board
 from engine.types import (
     DIAGONAL_DIRECTIONS, PARALLEL_DIRECTIONS, Color,
-    Direction, Location, Move, MoveType, Piece, PieceType
+    Direction, Location, Move, MoveType, PieceType
 )
 
 
@@ -25,11 +25,10 @@ def knight_moves(board: Board, location: Location, color: Color) -> Generator[Mo
         location+v for v in permutations(deltas, 2) if abs(v[0]) != abs(v[1])
     )
     for destination in filter(Board.is_in_bounds, destination_gen):
-        target: Optional[Piece] = board.get_square(destination)
-        if target is None:
+        if not board.is_occupied(destination):
             yield Move(location, destination, MoveType.PASSING)
-        elif target.color != color:
-            yield Move(location, destination, MoveType.CAPTURE)
+        elif (target := board.get_piece(destination)).color != color:
+            yield Move(location, destination, MoveType.CAPTURE, target)
 
 
 def bishop_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
@@ -57,11 +56,10 @@ def king_moves(board: Board, location: Location, color: Color) -> Generator[Move
         location+v for v in product(deltas, deltas) if v != (0, 0)
     )
     for destination in filter(Board.is_in_bounds, destination_gen):
-        target: Optional[Piece] = board.get_square(destination)
-        if target is None:
+        if not board.is_occupied(destination):
             yield Move(location, destination, MoveType.PASSING)
-        elif target.color != color:
-            yield Move(location, destination, MoveType.CAPTURE)
+        elif (target := board.get_piece(destination)).color != color:
+            yield Move(location, destination, MoveType.CAPTURE, target)
 
 
 def slide_moves(
@@ -69,12 +67,11 @@ def slide_moves(
 ) -> Generator[Move, None, None]:
     step = 1
     while Board.is_in_bounds(destination := location+(direction*step)):
-        target: Optional[Piece] = board.get_square(destination)
-        if target is None:
+        if not board.is_occupied(destination):
             yield Move(location, destination, MoveType.PASSING)
             step += 1
-        elif target.color != color:
-            yield Move(location, destination, MoveType.CAPTURE)
+        elif (target := board.get_piece(destination)).color != color:
+            yield Move(location, destination, MoveType.CAPTURE, target)
             break
         elif target.color == color:
             break

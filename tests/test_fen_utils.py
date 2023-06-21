@@ -1,3 +1,6 @@
+"""
+Unittests for FEN utils
+"""
 import unittest
 
 import numpy as np

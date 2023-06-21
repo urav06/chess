@@ -14,7 +14,7 @@ class Location(NamedTuple):
     def __add__(self, __other: Tuple[Any, ...]) -> Location:
         if isinstance(__other, Vector):
             return Location(self.i+__other.i, self.j+__other.j)
-        elif len(__other) == 2:
+        if len(__other) == 2:
             return Location(self.i+__other[0], self.j+__other[1])
         raise NotImplementedError(f"Can't add Location and {__other}")
 
@@ -54,6 +54,7 @@ class Move(NamedTuple):
     start: Location
     end: Location
     type: MoveType
+    target: Optional[Piece] = None
     promotion_rank: Optional[PieceType] = None
 
 
