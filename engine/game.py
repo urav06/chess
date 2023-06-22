@@ -2,20 +2,23 @@
 Game Class
 """
 from __future__ import annotations
+
+from functools import partial, wraps
 from itertools import chain
-from functools import wraps
-from typing import Set, Tuple, Generator, Callable, Any
+from typing import Any, Callable, Generator, Set, Tuple, TypeVar
+
 import numpy as np
 
 from engine.board import Board
-from engine.types import Piece, Location, Color, Move, MoveType
 from engine.pieces import PIECE_LOGIC_MAP
+from engine.types import Color, Location, Move, MoveType, Piece, PieceType
 
+R = TypeVar('R')
 
-def seekable(wrapped: Callable[..., Any]) -> Callable[..., Any]:
+def seekable(wrapped: Callable[..., R]) -> Callable[..., R]:
     @wraps(wrapped)
     def wrapper(game: Game, *args: Any, **kwds: Any) -> Any:
-        seek = kwds.get("seek", False)
+        seek = kwds.setdefault("seek", False)
         if seek:
             kwds.setdefault("board", game.seek_board)
             kwds.setdefault("pieces", game.seek_board_pieces)
@@ -101,8 +104,23 @@ class Game:
         else:
             raise ValueError(f'Unknown move type: {move.type}')
 
-    def legal_moves(self, color: Color) -> Generator[Move, None, None]:
-        pieces = self.filter_color_pieces(color)
-        yield from chain.from_iterable(
-            PIECE_LOGIC_MAP[p[0].type](self.board, p[1], self.active_color) for p in pieces
+    def is_in_check(self, color: Color, seek: bool = False) -> bool:
+        for move in self.legal_moves(~color, seek=seek):
+            if move.type is MoveType.CAPTURE and move.target == Piece(color, PieceType.KING):
+                return True
+        return False
+
+    @seekable
+    def legal_moves(self, color: Color, **kwds: Any) -> Generator[Move, None, None]:
+        pieces = self.filter_color_pieces(color, seek=kwds["seek"])
+        piece_move_generator = chain.from_iterable(
+            PIECE_LOGIC_MAP[p[0].type](kwds["board"], p[1], color) for p in pieces
         )
+        if kwds["seek"]:
+            yield from filter(partial(self.is_move_safe, color), piece_move_generator)
+        else:
+            yield from piece_move_generator
+
+    def is_move_safe(self, color: Color, move: Move) -> bool:
+        self.execute_move(move, seek=True)
+        return not self.is_in_check(color, seek=True)
