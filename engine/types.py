@@ -18,6 +18,12 @@ class Location(NamedTuple):
             return Location(self.i+__other[0], self.j+__other[1])
         raise NotImplementedError(f"Can't add Location and {__other}")
 
+    def __str__(self) -> str:
+        return f"({self.i}, {self.j})"
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 class Vector(NamedTuple):
     i: int
@@ -49,12 +55,30 @@ class MoveType(IntEnum):
     CASTLE = auto()
     PROMOTION = auto()
 
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return str(self)
+
+
+class CastleType(IntEnum):
+    QUEENSIDE = auto()
+    KINGSIDE = auto()
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 class Move(NamedTuple):
     start: Location
     end: Location
     type: MoveType
     target: Optional[Piece] = None
+    castle_type: Optional[CastleType] = None
     promotion_rank: Optional[PieceType] = None
 
 
@@ -65,6 +89,12 @@ class Color(IntEnum):
     def __invert__(self) -> Color:
         return Color.WHITE if self is Color.BLACK else Color.BLACK
 
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 class PieceType(IntEnum):
     PAWN = auto()  # Starts with 1
@@ -73,6 +103,12 @@ class PieceType(IntEnum):
     ROOK = auto()
     QUEEN = auto()
     KING = auto()
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return str(self)
 
 
 class Piece(NamedTuple):

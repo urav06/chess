@@ -11,7 +11,7 @@ import numpy as np
 
 from engine.board import Board
 from engine.pieces import PIECE_LOGIC_MAP
-from engine.types import Color, Location, Move, MoveType, Piece, PieceType
+from engine.types import Color, Location, Move, MoveType, Piece, PieceType, CastleType
 
 R = TypeVar('R')
 
@@ -98,7 +98,10 @@ class Game:
             self.move_piece(move.start, move.end, seek=seek)
 
         elif move.type is MoveType.CASTLE:
-            pass
+            if move.castle_type is CastleType.KINGSIDE:
+                pass
+            else:
+                pass
         elif move.type is MoveType.PROMOTION:
             pass
         else:
