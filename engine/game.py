@@ -1,13 +1,29 @@
 """
 Game Class
 """
-
+from __future__ import annotations
 from itertools import chain
-from typing import Set, Tuple, Generator
+from functools import wraps
+from typing import Set, Tuple, Generator, Callable, Any
+import numpy as np
 
 from engine.board import Board
 from engine.types import Piece, Location, Color, Move, MoveType
 from engine.pieces import PIECE_LOGIC_MAP
+
+
+def seekable(wrapped: Callable[..., Any]) -> Callable[..., Any]:
+    @wraps(wrapped)
+    def wrapper(game: Game, *args: Any, **kwds: Any) -> Any:
+        seek = kwds.get("seek", False)
+        if seek:
+            kwds.setdefault("board", game.seek_board)
+            kwds.setdefault("pieces", game.seek_board_pieces)
+        else:
+            kwds.setdefault("board", game.board)
+            kwds.setdefault("pieces", game.active_pieces)
+        return wrapped(game, *args, **kwds)
+    return wrapper
 
 
 class Game:
@@ -24,24 +40,31 @@ class Game:
         self.seek_board_pieces: Set[Tuple[Piece, Location]] = set()
 
     def filter_color_pieces(self, color: Color, seek: bool = False) -> Set[Tuple[Piece, Location]]:
-        _, pieces = self.process_seek_flag(seek)
+        pieces = self.seek_board_pieces if seek else self.active_pieces
         return set(filter(lambda x: x[0].color is color, pieces))
 
-    def add_piece(self, location: Location, piece: Piece, seek: bool = False) -> None:
-        board, pieces = self.process_seek_flag(seek)
+    @seekable
+    def add_piece(self, location: Location, piece: Piece, **kwds: Any) -> None:
+        board: Board = kwds["board"]
+        pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
+
         board.place_piece(piece, location)
         pieces.add((piece, location))
 
-    def remove_piece(self, location: Location, seek: bool = False) -> None:
-        board, pieces = self.process_seek_flag(seek)
+    @seekable
+    def remove_piece(self, location: Location, **kwds: Any) -> None:
+        board: Board = kwds["board"]
+        pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
+
         piece = board.get_piece(location)
         board[location] = 0
         pieces.remove((piece, location))
 
-    def move_piece(
-        self, source: Location, destination: Location, seek: bool = False
-    ) -> None:
-        board, pieces = self.process_seek_flag(seek)
+    @seekable
+    def move_piece(self, source: Location, destination: Location, **kwds: Any) -> None:
+        board: Board = kwds["board"]
+        pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
+
         piece = board.get_piece(source)
         board[destination] = board[source]
         board[source] = 0
@@ -59,12 +82,17 @@ class Game:
         self.active_color = Color.WHITE
 
     def execute_move(self, move: Move, seek: bool = False) -> None:
+        if seek:
+            # Refresh Seek Board Data
+            np.copyto(self.seek_board.board, self.board.board)
+            self.seek_board_pieces = self.active_pieces.copy()
+
         if move.type is MoveType.PASSING:
-            self.move_piece(move.start, move.end, seek)
+            self.move_piece(move.start, move.end, seek=seek)
 
         elif move.type is MoveType.CAPTURE:
-            self.remove_piece(move.end, seek)
-            self.move_piece(move.start, move.end, seek)
+            self.remove_piece(move.end, seek=seek)
+            self.move_piece(move.start, move.end, seek=seek)
 
         elif move.type is MoveType.CASTLE:
             pass
@@ -78,9 +106,3 @@ class Game:
         yield from chain.from_iterable(
             PIECE_LOGIC_MAP[p[0].type](self.board, p[1], self.active_color) for p in pieces
         )
-
-    def process_seek_flag(self, seek: bool) -> Tuple[Board, Set[Tuple[Piece, Location]]]:
-        # TODO: This whole logic and its usage should be a decorator
-        if seek:
-            return self.seek_board, self.seek_board_pieces
-        return self.board, self.active_pieces
