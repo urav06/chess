@@ -31,8 +31,10 @@ class Board:
             raise ValueError(f"{location} already occupied.")
         self[location] = np.array([piece.color, piece.type, 0, 1], dtype=np.int8)
 
-    def update_rank(self, location: Tuple[int, int], rank: PieceType) -> None:
-        self[location[0], location[1], 1] = rank
+    def update_rank(self, location: Tuple[int, int], rank: Optional[PieceType]) -> None:
+        # TODO: Remove optional
+        if rank:
+            self[location[0], location[1], 1] = rank
 
     @overload
     def is_occupied(self, arg1: Tuple[int, int]) -> bool: ...

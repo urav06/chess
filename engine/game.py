@@ -83,7 +83,6 @@ class Game:
     def reset(self) -> None:
         self.board.clear()
         self.active_pieces.clear()
-
         self.seek_board.clear()
         self.seek_board_pieces.clear()
 
