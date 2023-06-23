@@ -2,7 +2,7 @@
 Types used in the Chess engine.
 """
 from __future__ import annotations
-from enum import Enum, IntEnum, auto
+from enum import Enum, IntEnum, auto, IntFlag
 from typing import NamedTuple, Union, Tuple, Any, Optional
 from typing_extensions import SupportsIndex
 
@@ -49,14 +49,15 @@ class Direction(Vector, Enum):
     SW = Vector(1, -1)
 
 
-class MoveType(IntEnum):
+class MoveType(IntFlag):
     PASSING = auto()
     CAPTURE = auto()
     CASTLE = auto()
     PROMOTION = auto()
+    CAPTURE_AND_PROMOTION = CAPTURE | PROMOTION
 
     def __str__(self) -> str:
-        return self.name
+        return " | ".join(flag.name for flag in MoveType if flag & self and flag.name)
 
     def __repr__(self) -> str:
         return str(self)
