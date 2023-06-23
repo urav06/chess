@@ -92,24 +92,29 @@ class Game:
             np.copyto(self.seek_board.board, self.board.board)
             self.seek_board_pieces = self.active_pieces.copy()
 
-        match move.type:
-            case MoveType.PASSING:
-                self.move_piece(move.start, move.end, seek=seek)
+        match move:
+            case Move(start, end, MoveType.PASSING):
+                self.move_piece(start, end, seek=seek)
 
-            case MoveType.CAPTURE:
-                self.remove_piece(move.end, seek=seek)
-                self.move_piece(move.start, move.end, seek=seek)
+            case Move(start, end, MoveType.CAPTURE, target=_):
+                self.remove_piece(end, seek=seek)
+                self.move_piece(start, end, seek=seek)
 
-            case MoveType.CASTLE:
-                castling_kingside: bool = move.castle_type is CastleType.KINGSIDE
-                rook_start = (move.start.i, (BOARD_SIZE-1 if castling_kingside else 0))
-                rook_dest = move.end + (Direction.W if castling_kingside else Direction.E)
-                self.move_piece(move.start, move.end, seek=seek)
+            case Move(start, end, MoveType.CASTLE, castle_type=castle_type):
+                castling_kingside: bool = castle_type is CastleType.KINGSIDE
+                rook_start = (start.i, (BOARD_SIZE-1 if castling_kingside else 0))
+                rook_dest = end + (Direction.W if castling_kingside else Direction.E)
+                self.move_piece(start, end, seek=seek)
                 self.move_piece(rook_start, rook_dest, seek=seek)
 
-            case MoveType.PROMOTION:
-                self.move_piece(move.start, move.end, seek=seek)
-                self.board.update_rank(move.end, move.promotion_rank)
+            case Move(start, end, MoveType.PROMOTION, promotion_rank=rank):
+                self.move_piece(start, end, seek=seek)
+                self.board.update_rank(end, rank)
+
+            case Move(start, end, MoveType.CAPTURE_AND_PROMOTION, promotion_rank=rank):
+                self.remove_piece(end, seek=seek)
+                self.move_piece(start, end, seek=seek)
+                self.board.update_rank(end, rank)
 
             case _:
                 raise ValueError(f'Unknown move type: {move.type}')
