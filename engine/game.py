@@ -9,10 +9,12 @@ from typing import Any, Callable, Generator, Set, Tuple, TypeVar
 
 import numpy as np
 
-from engine.constants import BOARD_SIZE
 from engine.board import Board
+from engine.constants import BOARD_SIZE
 from engine.pieces import PIECE_LOGIC_MAP
-from engine.types import Color, Location, Move, MoveType, Piece, PieceType, CastleType
+from engine.types import (
+    CastleType, Color, Direction, Location, Move,MoveType, Piece, PieceType
+)
 
 R = TypeVar('R')
 
@@ -65,7 +67,9 @@ class Game:
         pieces.remove((piece, Location(*location)))
 
     @seekable
-    def move_piece(self, source: Tuple[int, int], destination: Tuple[int, int], **kwds: Any) -> None:
+    def move_piece(
+        self, source: Tuple[int, int], destination: Tuple[int, int], **kwds: Any
+    ) -> None:
         board: Board = kwds["board"]
         pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
 
@@ -89,24 +93,27 @@ class Game:
             np.copyto(self.seek_board.board, self.board.board)
             self.seek_board_pieces = self.active_pieces.copy()
 
-        if move.type is MoveType.PASSING:
-            self.move_piece(move.start, move.end, seek=seek)
+        match move.type:
+            case MoveType.PASSING:
+                self.move_piece(move.start, move.end, seek=seek)
 
-        elif move.type is MoveType.CAPTURE:
-            self.remove_piece(move.end, seek=seek)
-            self.move_piece(move.start, move.end, seek=seek)
+            case MoveType.CAPTURE:
+                self.remove_piece(move.end, seek=seek)
+                self.move_piece(move.start, move.end, seek=seek)
 
-        elif move.type is MoveType.CASTLE:
-            castling_kingside: bool = move.castle_type is CastleType.KINGSIDE
-            rook_start = (move.start.i, BOARD_SIZE-1) if castling_kingside else (move.start.i, 0)
-            rook_dest = (move.end.i, move.end.j-1) if castling_kingside else (move.end.i, move.end.j+1)
-            self.move_piece(move.start, move.end, seek=seek)
-            self.move_piece(rook_start, rook_dest, seek=seek)
+            case MoveType.CASTLE:
+                castling_kingside: bool = move.castle_type is CastleType.KINGSIDE
+                rook_start = (move.start.i, (BOARD_SIZE-1 if castling_kingside else 0))
+                rook_dest = move.end + (Direction.W if castling_kingside else Direction.E)
+                self.move_piece(move.start, move.end, seek=seek)
+                self.move_piece(rook_start, rook_dest, seek=seek)
 
-        elif move.type is MoveType.PROMOTION:
-            pass
-        else:
-            raise ValueError(f'Unknown move type: {move.type}')
+            case MoveType.PROMOTION:
+                self.move_piece(move.start, move.end, seek=seek)
+                self.board.update_rank(move.end, move.promotion_rank)
+
+            case _:
+                raise ValueError(f'Unknown move type: {move.type}')
 
     def is_in_check(self, color: Color, seek: bool = False) -> bool:
         for move in self.legal_moves(~color, seek=seek):
