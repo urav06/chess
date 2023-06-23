@@ -9,6 +9,7 @@ from typing import Any, Callable, Generator, Set, Tuple, TypeVar
 
 import numpy as np
 
+from engine.constants import BOARD_SIZE
 from engine.board import Board
 from engine.pieces import PIECE_LOGIC_MAP
 from engine.types import Color, Location, Move, MoveType, Piece, PieceType, CastleType
@@ -47,33 +48,33 @@ class Game:
         return set(filter(lambda x: x[0].color is color, pieces))
 
     @seekable
-    def add_piece(self, location: Location, piece: Piece, **kwds: Any) -> None:
+    def add_piece(self, location: Tuple[int, int], piece: Piece, **kwds: Any) -> None:
         board: Board = kwds["board"]
         pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
 
         board.place_piece(piece, location)
-        pieces.add((piece, location))
+        pieces.add((piece, Location(*location)))
 
     @seekable
-    def remove_piece(self, location: Location, **kwds: Any) -> None:
+    def remove_piece(self, location: Tuple[int, int], **kwds: Any) -> None:
         board: Board = kwds["board"]
         pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
 
         piece = board.get_piece(location)
         board[location] = 0
-        pieces.remove((piece, location))
+        pieces.remove((piece, Location(*location)))
 
     @seekable
-    def move_piece(self, source: Location, destination: Location, **kwds: Any) -> None:
+    def move_piece(self, source: Tuple[int, int], destination: Tuple[int, int], **kwds: Any) -> None:
         board: Board = kwds["board"]
         pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
 
         piece = board.get_piece(source)
         board[destination] = board[source]
         board[source] = 0
-        board[destination.i, destination.j, 2] = 1 # Set piece_has_moved
-        pieces.remove((piece, source))
-        pieces.add((piece, destination))
+        board[destination[0], destination[1], 2] = 1 # Set piece_has_moved
+        pieces.remove((piece, Location(*source)))
+        pieces.add((piece, Location(*destination)))
 
     def reset(self) -> None:
         self.board.clear()
@@ -81,8 +82,6 @@ class Game:
 
         self.seek_board.clear()
         self.seek_board_pieces.clear()
-
-        self.active_color = Color.WHITE
 
     def execute_move(self, move: Move, seek: bool = False) -> None:
         if seek:
@@ -98,10 +97,12 @@ class Game:
             self.move_piece(move.start, move.end, seek=seek)
 
         elif move.type is MoveType.CASTLE:
-            if move.castle_type is CastleType.KINGSIDE:
-                pass
-            else:
-                pass
+            castling_kingside: bool = move.castle_type is CastleType.KINGSIDE
+            rook_start = (move.start.i, BOARD_SIZE-1) if castling_kingside else (move.start.i, 0)
+            rook_dest = (move.end.i, move.end.j-1) if castling_kingside else (move.end.i, move.end.j+1)
+            self.move_piece(move.start, move.end, seek=seek)
+            self.move_piece(rook_start, rook_dest, seek=seek)
+
         elif move.type is MoveType.PROMOTION:
             pass
         else:
