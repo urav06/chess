@@ -3,11 +3,15 @@ __pycache__/
 *.py[cod]
 
 # Environment
-venv/
+venv*/
 .env
 
 # IDE
 .vscode/
+.idea/
 
 # mypy
 .mypy_cache/
+
+# Pyenv
+.python-version
