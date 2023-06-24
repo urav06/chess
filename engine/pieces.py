@@ -3,17 +3,38 @@ Movement logic of all the pieces
 """
 
 from itertools import chain, permutations, product
-from typing import Generator, List, Dict, Callable
+from typing import Generator, Dict, Callable
 
+from engine.constants import BOARD_SIZE
 from engine.board import Board
 from engine.types import (
-    DIAGONAL_DIRECTIONS, PARALLEL_DIRECTIONS, Color,
-    Direction, Location, Move, MoveType, PieceType
+    Color, Direction, Location, Move, MoveType, PieceType,
+    DIAGONAL_DIRECTIONS, PARALLEL_DIRECTIONS, # Direction Groups
+    CAPTURE, CAPTURE_AND_PROMOTION, PROMOTION, # MoveTypes
+    PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, # PieceTypes
+    WHITE, # Colors
 )
 
+PROMOTABLE_RANKS = [PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT]
+
+def transform_promotion(move: Move, color: Color) -> Generator[Move, None, None]:
+    promotion_row = 0 if color is WHITE else BOARD_SIZE-1
+    match move:
+        case Move(start, end, MoveType.PASSING) if end.i == promotion_row:
+            yield from (
+                Move(start, end, PROMOTION, promotion_rank=rank)
+                for rank in PROMOTABLE_RANKS
+            )
+        case Move(start, end, MoveType.CAPTURE, target=target) if end.i == promotion_row:
+            yield from (
+                Move(start, end, CAPTURE_AND_PROMOTION, target=target, promotion_rank=rank)
+                for rank in PROMOTABLE_RANKS
+            )
+        case _:
+            yield move
 
 def pawn_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-    front: Direction = Direction.N if color is Color.WHITE else Direction.S
+    front: Direction = Direction.N if color is WHITE else Direction.S
     one_ahead = location + front
     attack_diagonals = [one_ahead+Direction.E, one_ahead+Direction.W]
 
@@ -23,18 +44,17 @@ def pawn_moves(board: Board, location: Location, color: Color) -> Generator[Move
             and board.is_occupied(destination)
             and (target := board.get_piece(destination)).color is ~color
         ):
-            yield Move(location, destination, MoveType.CAPTURE, target)
+            yield from transform_promotion(Move(location, destination, CAPTURE, target), color)
 
     if board.is_in_bounds(one_ahead) and not board.is_occupied(one_ahead):
-        yield Move(location, one_ahead, MoveType.PASSING)
+        yield from transform_promotion(Move(location, one_ahead), color)
 
         if (
             board[location[0], location[1], 2] == 0  # Has not moved
             and board.is_in_bounds(two_ahead := location + (2*front))
             and not board.is_occupied(two_ahead)
         ):
-            yield Move(location, two_ahead, MoveType.PASSING)
-
+            yield Move(location, two_ahead)
 
 def knight_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
     deltas = [-2, -1, 1, 2]
@@ -43,9 +63,9 @@ def knight_moves(board: Board, location: Location, color: Color) -> Generator[Mo
     )
     for destination in filter(Board.is_in_bounds, destination_gen):
         if not board.is_occupied(destination):
-            yield Move(location, destination, MoveType.PASSING)
+            yield Move(location, destination)
         elif (target := board.get_piece(destination)).color != color:
-            yield Move(location, destination, MoveType.CAPTURE, target)
+            yield Move(location, destination, CAPTURE, target)
 
 
 def bishop_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
@@ -61,7 +81,7 @@ def rook_moves(board: Board, location: Location, color: Color) -> Generator[Move
 
 
 def queen_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-    directions: List[Direction] = PARALLEL_DIRECTIONS + DIAGONAL_DIRECTIONS
+    directions: list[Direction] = PARALLEL_DIRECTIONS + DIAGONAL_DIRECTIONS
     yield from chain.from_iterable(
         slide_moves(board, location, color, d) for d in directions
     )
@@ -74,9 +94,9 @@ def king_moves(board: Board, location: Location, color: Color) -> Generator[Move
     )
     for destination in filter(Board.is_in_bounds, destination_gen):
         if not board.is_occupied(destination):
-            yield Move(location, destination, MoveType.PASSING)
+            yield Move(location, destination)
         elif (target := board.get_piece(destination)).color != color:
-            yield Move(location, destination, MoveType.CAPTURE, target)
+            yield Move(location, destination, CAPTURE, target)
 
 
 def slide_moves(
@@ -85,10 +105,10 @@ def slide_moves(
     step = 1
     while Board.is_in_bounds(destination := location+(direction*step)):
         if not board.is_occupied(destination):
-            yield Move(location, destination, MoveType.PASSING)
+            yield Move(location, destination)
             step += 1
         elif (target := board.get_piece(destination)).color != color:
-            yield Move(location, destination, MoveType.CAPTURE, target)
+            yield Move(location, destination, CAPTURE, target)
             break
         elif target.color == color:
             break
@@ -97,10 +117,10 @@ def slide_moves(
 PIECE_LOGIC_MAP: Dict[
     PieceType, Callable[[Board, Location, Color], Generator[Move, None, None]]
 ] = {
-    PieceType.PAWN: pawn_moves,
-    PieceType.KNIGHT: knight_moves,
-    PieceType.BISHOP: bishop_moves,
-    PieceType.ROOK: rook_moves,
-    PieceType.QUEEN: queen_moves,
-    PieceType.KING: king_moves
+    PAWN: pawn_moves,
+    KNIGHT: knight_moves,
+    BISHOP: bishop_moves,
+    ROOK: rook_moves,
+    QUEEN: queen_moves,
+    KING: king_moves
 }

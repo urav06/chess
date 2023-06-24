@@ -2,7 +2,7 @@
 Utils to load and save FEN strings
 """
 
-from typing import Dict, List
+from typing import Dict
 
 from engine.constants import BOARD_SIZE
 from engine.board import Board
@@ -28,7 +28,7 @@ INV_FEN_MAPPING = {v: k for k, v in FEN_MAPPING.items()}
 
 
 def from_fen(fen_string: str, game: Game) -> None:
-    fen_data: List[str] = fen_string.strip().split(sep=" ")
+    fen_data: list[str] = fen_string.strip().split(sep=" ")
 
     if len(fen_data) == 1:
         placement_string: str = fen_data[0]
@@ -38,7 +38,7 @@ def from_fen(fen_string: str, game: Game) -> None:
             else Color.WHITE
         game.active_color = active_color
 
-    placement_data: List[str] = placement_string.split("/")
+    placement_data: list[str] = placement_string.split("/")
     if len(placement_data) != BOARD_SIZE:
         raise ValueError(f"Invalid number of rows in the FEN string: {len(placement_data)}")
 

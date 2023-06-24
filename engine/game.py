@@ -13,7 +13,7 @@ from engine.board import Board
 from engine.constants import BOARD_SIZE
 from engine.pieces import PIECE_LOGIC_MAP
 from engine.types import (
-    CastleType, Color, Direction, Location, Move,MoveType, Piece, PieceType
+    CastleType, Color, Direction, Location, Move, MoveType, Piece, PieceType,
 )
 
 R = TypeVar('R')
@@ -23,11 +23,11 @@ def seekable(wrapped: Callable[..., R]) -> Callable[..., R]:
     def wrapper(game: Game, *args: Any, **kwds: Any) -> Any:
         seek = kwds.setdefault("seek", False)
         if seek:
-            kwds.setdefault("board", game.seek_board)
-            kwds.setdefault("pieces", game.seek_board_pieces)
+            kwds["board"] = kwds.get("board") or game.seek_board
+            kwds["pieces"] = kwds.get("pieces") or game.seek_board_pieces
         else:
-            kwds.setdefault("board", game.board)
-            kwds.setdefault("pieces", game.active_pieces)
+            kwds["board"] = kwds.get("board") or game.board
+            kwds["pieces"] = kwds.get("pieces") or game.active_pieces
         return wrapped(game, *args, **kwds)
     return wrapper
 
@@ -123,18 +123,15 @@ class Game:
             case _:
                 raise ValueError(f'Unknown move type: {move.type}')
 
-    def is_in_check(self, color: Color, seek: bool = False) -> bool:
+    def is_in_check(self, color: Color, **kwds: Any) -> bool:
         return any(
             move.type is MoveType.CAPTURE and move.target == Piece(color, PieceType.KING)
-            for move in self.legal_moves(~color, seek=seek)
+            for move in self.legal_moves(~color, **kwds)
         )
 
     @seekable
     def legal_moves(self, color: Color, **kwds: Any) -> Generator[Move, None, None]:
-        if (override_pieces := kwds.get("pieces")):
-            pieces = self.filter_color_pieces(color, pieces=override_pieces)
-        else:
-            pieces = self.filter_color_pieces(color, seek=kwds["seek"])
+        pieces = self.filter_color_pieces(color, **kwds)
         piece_move_generator = chain.from_iterable(
             PIECE_LOGIC_MAP[p[0].type](kwds["board"], p[1], color) for p in pieces
         )
