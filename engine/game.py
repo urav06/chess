@@ -51,12 +51,15 @@ class Game:
         return set(filter(lambda x: x[0].color is color, pieces))
 
     @seekable
-    def add_piece(self, location: Tuple[int, int], piece: Piece, **kwds: Any) -> None:
+    def add_piece(
+        self, location: Tuple[int, int], piece: Piece, **kwds: Any
+    ) -> set[Piece, Location]:
         board: Board = kwds["board"]
         pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
 
         board.place_piece(piece, location)
         pieces.add((piece, Location(*location)))
+        return (piece, Location(*location))
 
     @seekable
     def remove_piece(self, location: Tuple[int, int], **kwds: Any) -> None:
