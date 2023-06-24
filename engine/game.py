@@ -51,12 +51,15 @@ class Game:
         return set(filter(lambda x: x[0].color is color, pieces))
 
     @seekable
-    def add_piece(self, location: Tuple[int, int], piece: Piece, **kwds: Any) -> None:
+    def add_piece(
+        self, location: Tuple[int, int], piece: Piece, **kwds: Any
+    ) -> Tuple[Piece, Location]:
         board: Board = kwds["board"]
         pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
 
         board.place_piece(piece, location)
         pieces.add((piece, Location(*location)))
+        return (piece, Location(*location))
 
     @seekable
     def remove_piece(self, location: Tuple[int, int], **kwds: Any) -> None:
@@ -121,10 +124,10 @@ class Game:
                 raise ValueError(f'Unknown move type: {move.type}')
 
     def is_in_check(self, color: Color, seek: bool = False) -> bool:
-        for move in self.legal_moves(~color, seek=seek):
-            if move.type is MoveType.CAPTURE and move.target == Piece(color, PieceType.KING):
-                return True
-        return False
+        return any(
+            move.type is MoveType.CAPTURE and move.target == Piece(color, PieceType.KING)
+            for move in self.legal_moves(~color, seek=seek)
+        )
 
     @seekable
     def legal_moves(self, color: Color, **kwds: Any) -> Generator[Move, None, None]:
