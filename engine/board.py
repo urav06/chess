@@ -32,7 +32,7 @@ class Board:
         self[location] = np.array([piece.color, piece.type, 0, 1], dtype=np.int8)
 
     def update_rank(self, location: Tuple[int, int], rank: Optional[PieceType]) -> None:
-        # TODO: Remove optional
+        # Remove optional
         if rank:
             self[location[0], location[1], 1] = rank
 
