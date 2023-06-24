@@ -77,7 +77,7 @@ class CastleType(IntEnum):
 class Move(NamedTuple):
     start: Location
     end: Location
-    type: MoveType
+    type: MoveType = MoveType.PASSING
     target: Optional[Piece] = None
     castle_type: Optional[CastleType] = None
     promotion_rank: Optional[PieceType] = None
