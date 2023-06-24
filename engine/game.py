@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from functools import partial, wraps
 from itertools import chain
-from typing import Any, Callable, Generator, Set, Tuple, TypeVar
+from typing import Any, Callable, Generator, Tuple, TypeVar
 
 import numpy as np
 
@@ -14,6 +14,8 @@ from engine.constants import BOARD_SIZE
 from engine.pieces import PIECE_LOGIC_MAP
 from engine.types import (
     CastleType, Color, Direction, Location, Move, MoveType, Piece, PieceType,
+    CAPTURE, CAPTURE_AND_PROMOTION, # MoveTypes
+    KING, # PieceTypes
 )
 
 R = TypeVar('R')
@@ -39,32 +41,32 @@ class Game:
     """
     def __init__(self) -> None:
         self.board = Board()
-        self.active_pieces: Set[Tuple[Piece, Location]] = set()
+        self.active_pieces: set[Tuple[Piece, Location]] = set()
         self.active_color = Color.WHITE
 
         self.seek_board = Board()
-        self.seek_board_pieces: Set[Tuple[Piece, Location]] = set()
+        self.seek_board_pieces: set[Tuple[Piece, Location]] = set()
 
     @seekable
-    def filter_color_pieces(self, color: Color, **kwds: Any) -> Set[Tuple[Piece, Location]]:
+    def filter_color_pieces(self, color: Color, **kwds: Any) -> set[Tuple[Piece, Location]]:
         pieces = kwds["pieces"]
         return set(filter(lambda x: x[0].color is color, pieces))
 
     @seekable
     def add_piece(
-        self, location: Tuple[int, int], piece: Piece, **kwds: Any
+        self, location: Tuple[int, int], piece: Tuple[Color, PieceType], **kwds: Any
     ) -> Tuple[Piece, Location]:
         board: Board = kwds["board"]
-        pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
+        pieces: set[Tuple[Piece, Location]] = kwds["pieces"]
 
         board.place_piece(piece, location)
-        pieces.add((piece, Location(*location)))
-        return (piece, Location(*location))
+        pieces.add((Piece(*piece), Location(*location)))
+        return (Piece(*piece), Location(*location))
 
     @seekable
     def remove_piece(self, location: Tuple[int, int], **kwds: Any) -> None:
         board: Board = kwds["board"]
-        pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
+        pieces: set[Tuple[Piece, Location]] = kwds["pieces"]
 
         piece = board.get_piece(location)
         board[location] = 0
@@ -75,12 +77,12 @@ class Game:
         self, source: Tuple[int, int], destination: Tuple[int, int], **kwds: Any
     ) -> None:
         board: Board = kwds["board"]
-        pieces: Set[Tuple[Piece, Location]] = kwds["pieces"]
+        pieces: set[Tuple[Piece, Location]] = kwds["pieces"]
 
         piece = board.get_piece(source)
         board[destination] = board[source]
         board[source] = 0
-        board[destination[0], destination[1], 2] = 1 # Set piece_has_moved
+        board[destination[0], destination[1], 2] = 1 # Piece has moved
         pieces.remove((piece, Location(*source)))
         pieces.add((piece, Location(*destination)))
 
@@ -111,21 +113,22 @@ class Game:
                 self.move_piece(start, end, seek=seek)
                 self.move_piece(rook_start, rook_dest, seek=seek)
 
-            case Move(start, end, MoveType.PROMOTION, promotion_rank=rank):
+            case Move(start, end, MoveType.PROMOTION, promotion_rank=rank) if rank:
                 self.move_piece(start, end, seek=seek)
                 self.board.update_rank(end, rank)
 
-            case Move(start, end, MoveType.CAPTURE_AND_PROMOTION, promotion_rank=rank):
+            case Move(start, end, MoveType.CAPTURE_AND_PROMOTION, promotion_rank=rank) if rank:
                 self.remove_piece(end, seek=seek)
                 self.move_piece(start, end, seek=seek)
                 self.board.update_rank(end, rank)
 
             case _:
-                raise ValueError(f'Unknown move type: {move.type}')
+                raise ValueError(f'Invalid Move: {move}')
 
     def is_in_check(self, color: Color, **kwds: Any) -> bool:
+        # TODO: Improve capture and promote flagging
         return any(
-            move.type is MoveType.CAPTURE and move.target == Piece(color, PieceType.KING)
+            move.type in [CAPTURE, CAPTURE_AND_PROMOTION] and move.target == (color, KING)
             for move in self.legal_moves(~color, **kwds)
         )
 
