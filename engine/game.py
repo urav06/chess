@@ -45,8 +45,9 @@ class Game:
         self.seek_board = Board()
         self.seek_board_pieces: Set[Tuple[Piece, Location]] = set()
 
-    def filter_color_pieces(self, color: Color, seek: bool = False) -> Set[Tuple[Piece, Location]]:
-        pieces = self.seek_board_pieces if seek else self.active_pieces
+    @seekable
+    def filter_color_pieces(self, color: Color, **kwds: Any) -> Set[Tuple[Piece, Location]]:
+        pieces = kwds["pieces"]
         return set(filter(lambda x: x[0].color is color, pieces))
 
     @seekable
@@ -127,14 +128,18 @@ class Game:
 
     @seekable
     def legal_moves(self, color: Color, **kwds: Any) -> Generator[Move, None, None]:
-        pieces = self.filter_color_pieces(color, seek=kwds["seek"])
+        if (override_pieces := kwds.get("pieces")):
+            pieces = self.filter_color_pieces(color, pieces=override_pieces)
+        else:
+            pieces = self.filter_color_pieces(color, seek=kwds["seek"])
         piece_move_generator = chain.from_iterable(
             PIECE_LOGIC_MAP[p[0].type](kwds["board"], p[1], color) for p in pieces
         )
         if kwds["seek"]:
-            yield from filter(partial(self.is_move_safe, color), piece_move_generator)
-        else:
             yield from piece_move_generator
+        else:
+            yield from filter(partial(self.is_move_safe, color), piece_move_generator)
+
 
     def is_move_safe(self, color: Color, move: Move) -> bool:
         self.execute_move(move, seek=True)
