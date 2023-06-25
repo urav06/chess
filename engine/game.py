@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from functools import partial, wraps
 from itertools import chain
-from typing import Any, Callable, Generator, TypeVar
+from typing import Any, Callable, Generator, TypeVar, ParamSpec, cast
 
 import numpy as np
 
@@ -19,22 +19,8 @@ from engine.types import (
 )
 
 R = TypeVar('R')
+P = ParamSpec('P')
 GamePieceInfo = tuple[Piece, Location]
-
-def seekable(wrapped: Callable[..., R]) -> Callable[..., R]:
-    @wraps(wrapped)
-    def wrapper(game: Game, *args: Any, **kwds: Any) -> Any:
-        seek = kwds.setdefault("seek", False)
-        if seek:
-            kwds["board"] = kwds.get("board") or game.seek_board
-            kwds["pieces"] = kwds.get("pieces") or game.seek_board_pieces
-        else:
-            kwds["board"] = kwds.get("board") or game.board
-            kwds["pieces"] = kwds.get("pieces") or game.active_pieces
-        kwds["color"] = kwds.get("color") or game.active_color
-        return wrapped(game, *args, **kwds)
-    return wrapper
-
 
 class Game:
     """
@@ -48,6 +34,26 @@ class Game:
 
         self.seek_board = Board()
         self.seek_board_pieces: set[GamePieceInfo] = set()
+
+    @staticmethod
+    def seekable(wrapped: Callable[P, R]) -> Callable[P, R]:
+        """
+        Decorator to select the board, pieces, and color to use for a method.
+        """
+        @wraps(wrapped)
+        def wrapper(*args: P.args, **kwds: P.kwargs) -> R:
+            self: Game = cast(Game, args[0])
+            seek: bool = cast(bool, kwds.setdefault("seek", False))
+            if seek:
+                kwds["board"] = kwds.get("board") or self.seek_board
+                kwds["pieces"] = kwds.get("pieces") or self.seek_board_pieces
+            else:
+                kwds["board"] = kwds.get("board") or self.board
+                kwds["pieces"] = kwds.get("pieces") or self.active_pieces
+            kwds["color"] = kwds.get("color") or self.active_color
+            kwds["pieces"] = {kwds["pieces"]} if isinstance(kwds["pieces"], tuple) else kwds["pieces"]
+            return wrapped(*args, **kwds)
+        return wrapper
 
     @seekable
     def filter_color_pieces(self, color: Color, **kwds: Any) -> set[GamePieceInfo]:
@@ -134,8 +140,21 @@ class Game:
             for move in self.legal_moves(color=~color, **kwds)
         )
 
+    def is_in_checkmate(self, color: Color) -> bool:
+        return  not any(self.legal_moves(color=color)) and self.is_in_check(color)
+
+    def is_in_stalemate(self, color: Color) -> bool:
+        return  not any(self.legal_moves(color=color)) and not self.is_in_check(color)
+
     @seekable
     def legal_moves(self, **kwds: Any) -> Generator[Move, None, None]:
+        """
+        Generate all legal moves for the selected pieces.
+
+        :param Color color: Color of the pieces to generate moves for.
+        :param bool seek: Whether to use the seek board and pieces.
+        :param set[GamePieceInfo] pieces: Set of pieces to generate moves for.
+        """
         pieces = self.filter_color_pieces(**kwds)
         piece_move_generator = chain.from_iterable(
             PIECE_LOGIC_MAP[p[0].type](kwds["board"], p[1], p[0].color) for p in pieces

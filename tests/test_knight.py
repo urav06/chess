@@ -32,7 +32,7 @@ class TestKnight(unittest.TestCase):
             Move(start_loc, Location(*dest))
             for dest in [(2, 3), (3, 2), (0, 3), (3, 0)]
         }
-        calculated_legal_moves = set(self.game.legal_moves(color=BLACK, pieces={piece_info}))
+        calculated_legal_moves = set(self.game.legal_moves(color=BLACK, pieces=piece_info))
         logging.debug("Calculated Legal moves are %s", calculated_legal_moves)
         self.assertSetEqual(calculated_legal_moves, expected_legal_moves)
 
@@ -43,7 +43,7 @@ class TestKnight(unittest.TestCase):
             Move(start_loc, Location(*dest))
             for dest in [(5, 6), (6, 5), (2, 3), (3, 2), (5, 2), (6, 3), (3, 6), (2, 5)]
         }
-        calculated_legal_moves = set(self.game.legal_moves(color=WHITE, pieces={piece_info}))
+        calculated_legal_moves = set(self.game.legal_moves(color=WHITE, pieces=piece_info))
         self.assertSetEqual(expected_legal_moves, calculated_legal_moves)
 
     def test_capture_knight_moves(self) -> None:
