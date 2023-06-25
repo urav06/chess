@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from functools import partial, wraps
 from itertools import chain
-from typing import Any, Callable, Generator, Tuple, TypeVar
+from typing import Any, Callable, Generator, TypeVar
 
 import numpy as np
 
@@ -19,6 +19,7 @@ from engine.types import (
 )
 
 R = TypeVar('R')
+GamePieceInfo = tuple[Piece, Location]
 
 def seekable(wrapped: Callable[..., R]) -> Callable[..., R]:
     @wraps(wrapped)
@@ -30,6 +31,7 @@ def seekable(wrapped: Callable[..., R]) -> Callable[..., R]:
         else:
             kwds["board"] = kwds.get("board") or game.board
             kwds["pieces"] = kwds.get("pieces") or game.active_pieces
+        kwds["color"] = kwds.get("color") or game.active_color
         return wrapped(game, *args, **kwds)
     return wrapper
 
@@ -41,32 +43,32 @@ class Game:
     """
     def __init__(self) -> None:
         self.board = Board()
-        self.active_pieces: set[Tuple[Piece, Location]] = set()
+        self.active_pieces: set[GamePieceInfo] = set()
         self.active_color = Color.WHITE
 
         self.seek_board = Board()
-        self.seek_board_pieces: set[Tuple[Piece, Location]] = set()
+        self.seek_board_pieces: set[GamePieceInfo] = set()
 
     @seekable
-    def filter_color_pieces(self, color: Color, **kwds: Any) -> set[Tuple[Piece, Location]]:
+    def filter_color_pieces(self, color: Color, **kwds: Any) -> set[GamePieceInfo]:
         pieces = kwds["pieces"]
         return set(filter(lambda x: x[0].color is color, pieces))
 
     @seekable
     def add_piece(
-        self, location: Tuple[int, int], piece: Tuple[Color, PieceType], **kwds: Any
-    ) -> Tuple[Piece, Location]:
+        self, location: tuple[int, int], piece: tuple[Color, PieceType], **kwds: Any
+    ) -> GamePieceInfo:
         board: Board = kwds["board"]
-        pieces: set[Tuple[Piece, Location]] = kwds["pieces"]
+        pieces: set[GamePieceInfo] = kwds["pieces"]
 
         board.place_piece(piece, location)
         pieces.add((Piece(*piece), Location(*location)))
         return (Piece(*piece), Location(*location))
 
     @seekable
-    def remove_piece(self, location: Tuple[int, int], **kwds: Any) -> None:
+    def remove_piece(self, location: tuple[int, int], **kwds: Any) -> None:
         board: Board = kwds["board"]
-        pieces: set[Tuple[Piece, Location]] = kwds["pieces"]
+        pieces: set[GamePieceInfo] = kwds["pieces"]
 
         piece = board.get_piece(location)
         board[location] = 0
@@ -74,10 +76,10 @@ class Game:
 
     @seekable
     def move_piece(
-        self, source: Tuple[int, int], destination: Tuple[int, int], **kwds: Any
+        self, source: tuple[int, int], destination: tuple[int, int], **kwds: Any
     ) -> None:
         board: Board = kwds["board"]
-        pieces: set[Tuple[Piece, Location]] = kwds["pieces"]
+        pieces: set[GamePieceInfo] = kwds["pieces"]
 
         piece = board.get_piece(source)
         board[destination] = board[source]
@@ -129,20 +131,19 @@ class Game:
         # TODO: Improve capture and promote flagging
         return any(
             move.type in [CAPTURE, CAPTURE_AND_PROMOTION] and move.target == (color, KING)
-            for move in self.legal_moves(~color, **kwds)
+            for move in self.legal_moves(color=~color, **kwds)
         )
 
     @seekable
-    def legal_moves(self, color: Color, **kwds: Any) -> Generator[Move, None, None]:
-        pieces = self.filter_color_pieces(color, **kwds)
+    def legal_moves(self, **kwds: Any) -> Generator[Move, None, None]:
+        pieces = self.filter_color_pieces(**kwds)
         piece_move_generator = chain.from_iterable(
-            PIECE_LOGIC_MAP[p[0].type](kwds["board"], p[1], color) for p in pieces
+            PIECE_LOGIC_MAP[p[0].type](kwds["board"], p[1], p[0].color) for p in pieces
         )
         if kwds["seek"]:
             yield from piece_move_generator
         else:
-            yield from filter(partial(self.is_move_safe, color), piece_move_generator)
-
+            yield from filter(partial(self.is_move_safe, kwds["color"]), piece_move_generator)
 
     def is_move_safe(self, color: Color, move: Move) -> bool:
         self.execute_move(move, seek=True)
