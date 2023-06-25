@@ -51,14 +51,15 @@ class Game:
                 kwds["board"] = kwds.get("board") or self.board
                 kwds["pieces"] = kwds.get("pieces") or self.active_pieces
             kwds["color"] = kwds.get("color") or self.active_color
-            kwds["pieces"] = {kwds["pieces"]} if isinstance(kwds["pieces"], tuple) else kwds["pieces"]
+            if isinstance(kwds["pieces"], tuple):
+                kwds["pieces"] = {kwds["pieces"]}
             return wrapped(*args, **kwds)
         return wrapper
 
     @seekable
     def filter_color_pieces(self, color: Color, **kwds: Any) -> set[GamePieceInfo]:
         pieces = kwds["pieces"]
-        return set(filter(lambda x: x[0].color is color, pieces))
+        return set(filter(lambda x: x[0][0] is color, pieces))
 
     @seekable
     def add_piece(
@@ -157,7 +158,7 @@ class Game:
         """
         pieces = self.filter_color_pieces(**kwds)
         piece_move_generator = chain.from_iterable(
-            PIECE_LOGIC_MAP[p[0].type](kwds["board"], p[1], p[0].color) for p in pieces
+            PIECE_LOGIC_MAP[p[0][1]](kwds["board"], Location(*p[1]), p[0][0]) for p in pieces
         )
         if kwds["seek"]:
             yield from piece_move_generator
