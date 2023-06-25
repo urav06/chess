@@ -116,6 +116,23 @@ class Piece(NamedTuple):
     color: Color
     type: PieceType
 
-
+# Constants
 PARALLEL_DIRECTIONS = [Direction.N, Direction.S, Direction.E, Direction.W]
 DIAGONAL_DIRECTIONS = [Direction.NE, Direction.NW, Direction.SE, Direction.SW]
+
+# Aliases
+BLACK = Color.BLACK
+WHITE = Color.WHITE
+
+PAWN = PieceType.PAWN
+KNIGHT = PieceType.KNIGHT
+BISHOP = PieceType.BISHOP
+ROOK = PieceType.ROOK
+QUEEN = PieceType.QUEEN
+KING = PieceType.KING
+
+PASSING = MoveType.PASSING
+CAPTURE = MoveType.CAPTURE
+CASTLE = MoveType.CASTLE
+PROMOTION = MoveType.PROMOTION
+CAPTURE_AND_PROMOTION = MoveType.CAPTURE_AND_PROMOTION
