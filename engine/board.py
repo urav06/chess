@@ -3,7 +3,7 @@ Board Class
 """
 
 from itertools import product
-from typing import Optional, Tuple, Union, overload
+from typing import Tuple, Union, overload, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -31,23 +31,17 @@ class Board:
             raise ValueError(f"{location} already occupied.")
         self[location] = np.array([piece[0], piece[1], 0, 1], dtype=np.int8)
 
-    @overload
-    def is_occupied(self, arg1: Tuple[int, int]) -> bool: ...
-    @overload
-    def is_occupied(self, arg1: int, arg2: int) -> bool: ...
-    def is_occupied(self, arg1: Union[Tuple[int, int], int], arg2: Optional[int] = None) -> bool:
-        i, j = self.__unpack_index_args(arg1, arg2)
-        return int(self[i, j, 3]) != 0
 
-    @overload
-    def get_piece(self, arg1: Tuple[int, int]) -> Piece: ...
-    @overload
-    def get_piece(self, arg1: int, arg2: int) -> Piece: ...
-    def get_piece(self, arg1: Union[Tuple[int, int], int], arg2: Optional[int] = None) -> Piece:
-        i, j = self.__unpack_index_args(arg1, arg2)
-        if self[i, j, 3] == 0:
-            raise ValueError(f"No piece at {(i, j)}")
-        return Piece(Color(int(self[i, j, 0])), PieceType(int(self[i, j, 1])))
+    def is_occupied(self, loc: Tuple[int, int]) -> bool:
+        return cast(bool, self.board[loc[0], loc[1], 3] != 0)
+
+    def get_piece(self, loc: Tuple[int, int]) -> Piece:
+        if self[loc[0], loc[1], 3] == 0:
+            raise ValueError(f"No piece at {(loc[0], loc[1])}")
+        return Piece(
+            Color(self.board[loc[0], loc[1], 0]),
+            PieceType(self.board[loc[0], loc[1], 1])
+        )
 
     def clear(self) -> None:
         self.board.fill(0)
@@ -84,21 +78,11 @@ class Board:
         else:
             raise IndexError(f"Invalid index {index} for Board.")
 
-    @staticmethod
-    def __unpack_index_args(
-        arg1: Union[Tuple[int, int], int], arg2: Optional[int] = None
-    ) -> Tuple[int, int]:
-        if isinstance(arg1, int) and isinstance(arg2, int):
-            return arg1, arg2
-        if isinstance(arg1, tuple):
-            return arg1
-        raise IndexError(f"Invalid index {(arg1, arg2)} for Board.")
-
     def __str__(self) -> str:
         visual: str = ""
         for i, j in product(range(BOARD_SIZE), range(BOARD_SIZE)):
-            if self.is_occupied(i, j):
-                piece = self.get_piece(i, j)
+            if self.is_occupied((i, j)):
+                piece = self.get_piece((i, j))
                 visual += f" {UNICODE_PIECES[piece.type][piece.color]} "
             else:
                 square_color = Color.BLACK if (i % 2 == 0) ^ (j % 2 == 0) else Color.WHITE
