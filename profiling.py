@@ -15,6 +15,7 @@ from github_action_utils import GithubActionUtils as gau
 
 PER_GAME_MOVE_LIMIT = 200
 GAME_COUNT = 25
+game_results = {}
 
 def random_game(limit: int = PER_GAME_MOVE_LIMIT) -> bool:
     game = Game()
@@ -30,20 +31,19 @@ def random_game(limit: int = PER_GAME_MOVE_LIMIT) -> bool:
         game.active_color = ~game.active_color
     return f"EXHAUSTED {limit} Moves"
 
-def run_games(count: int = GAME_COUNT, game_results = None) -> None:
+def run_games(count: int = GAME_COUNT, results = None) -> None:
     for _ in range(count):
         ret = random_game(PER_GAME_MOVE_LIMIT)
         if os.getenv("ENVIRONMENT") != "GITHUB":
             print(ret)
-        if ret not in game_results:
-            game_results[ret] = 0
-        game_results[ret] += 1
-    return game_results
+        if ret not in results:
+            results[ret] = 0
+        results[ret] += 1
+    return results
 
 def run_profiler() -> None:
     profiler = cProfile.Profile()
-    game_results = {}
-    output = profiler.run("run_games(game_results=game_results)")
+    output = profiler.run("run_games(results=game_results)")
     stats = pstats.Stats(output)
     stats.print_stats()
     summary(stats, game_results)
