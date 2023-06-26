@@ -81,6 +81,17 @@ class Game:
         piece = board.get_piece(location)
         board[location] = 0
         pieces.remove((piece, Location(*location)))
+    
+    @seekable
+    def promote_piece(self, location: tuple[int, int], rank: PieceType, **kwds: Any) -> None:
+        board: Board = kwds["board"]
+        pieces: set[GamePieceInfo] = kwds["pieces"]
+
+        piece = board.get_piece(location)
+        board[location[0], location[1], 1] = rank
+        pieces.remove((piece, Location(*location)))
+        pieces.add((Piece(piece.color, rank), Location(*location)))
+
 
     @seekable
     def move_piece(
@@ -125,12 +136,12 @@ class Game:
 
             case Move(start, end, MoveType.PROMOTION, promotion_rank=rank) if rank:
                 self.move_piece(start, end, seek=seek)
-                self.board.update_rank(end, rank)
+                self.promote_piece(end, rank, seek=seek)
 
             case Move(start, end, MoveType.CAPTURE_AND_PROMOTION, promotion_rank=rank) if rank:
                 self.remove_piece(end, seek=seek)
                 self.move_piece(start, end, seek=seek)
-                self.board.update_rank(end, rank)
+                self.promote_piece(end, rank, seek=seek)
 
             case _:
                 raise ValueError(f'Invalid Move: {move}')
