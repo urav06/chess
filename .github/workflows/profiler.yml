@@ -23,6 +23,6 @@ jobs:
         pip install -r ./requirements.txt
     - name: Profiling the code
       run: |
-        echo "### Profiler Stats :hourglass: ###" >> $GITHUB_STEP_SUMMARY
+        echo "## Profiler Stats :hourglass: ##" >> $GITHUB_STEP_SUMMARY
         python profiling.py
   
