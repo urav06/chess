@@ -57,7 +57,7 @@ class MoveType(IntFlag):
     CAPTURE_AND_PROMOTION = CAPTURE | PROMOTION
 
     def __str__(self) -> str:
-        return self.name
+        return self.name or str(self.value)
 
     def __repr__(self) -> str:
         return str(self)

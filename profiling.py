@@ -37,5 +37,5 @@ if __name__ == "__main__":
     op = profiler.run("run_games(GAME_COUNT)")
     stats = pstats.Stats(op)
     op.print_stats()
-    print(f"AVERAGE PER GAME TIME: {stats.total_tt/GAME_COUNT}")
+    print(f"AVERAGE PER GAME TIME: {stats.total_tt/GAME_COUNT}")  # type: ignore
     
