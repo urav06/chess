@@ -62,9 +62,12 @@ class Board:
     @overload
     def __getitem__(self, index: Tuple[int, int]) -> npt.NDArray[np.int8]: ...
     @overload
-    def __getitem__(self, index: Tuple[int, int, int]) -> npt.NDArray[np.int8]: ...
     def __getitem__(
-        self, index: Union[Tuple[int, int], Tuple[int, int ,int]]
+        self, index: Tuple[Union[int, slice], Union[int, slice], int]
+    ) -> npt.NDArray[np.int8]: ...
+    def __getitem__(
+        self,
+        index: Union[Tuple[int, int], Tuple[Union[int, slice], Union[int, slice] ,int]]
     ) -> npt.NDArray[np.int8]:
         if 2 <= len(index) <= 3:
             return self.board.__getitem__((*index, Ellipsis))

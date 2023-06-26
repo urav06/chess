@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from functools import partial, wraps
 from itertools import chain
-from typing import Any, Callable, Generator, TypeVar, ParamSpec, cast
+from typing import Any, Callable, Generator, Optional, TypeVar, ParamSpec, cast
 
 import numpy as np
 
@@ -14,8 +14,9 @@ from engine.constants import BOARD_SIZE
 from engine.pieces import PIECE_LOGIC_MAP
 from engine.types import (
     CastleType, Color, Direction, Location, Move, MoveType, Piece, PieceType,
-    CAPTURE, CAPTURE_AND_PROMOTION, # MoveTypes
-    KING, # PieceTypes
+    CAPTURE, # MoveTypes
+    KING, ROOK, # PieceTypes
+    WHITE, # Colors
 )
 
 R = TypeVar('R')
@@ -134,10 +135,15 @@ class Game:
             case _:
                 raise ValueError(f'Invalid Move: {move}')
 
-    def is_in_check(self, color: Color, **kwds: Any) -> bool:
-        # TODO: Improve capture and promote flagging
+    def is_in_check(
+        self, color: Color, square: Optional[tuple[int, int]]=None, **kwds: Any
+    ) -> bool:
+        if square:
+            return any(
+                move.end == square for move in self.legal_moves(color=~color, **kwds)
+            )
         return any(
-            move.type in [CAPTURE, CAPTURE_AND_PROMOTION] and move.target == (color, KING)
+            CAPTURE in move.type and move.target == (color, KING)
             for move in self.legal_moves(color=~color, **kwds)
         )
 
@@ -164,6 +170,43 @@ class Game:
             yield from piece_move_generator
         else:
             yield from filter(partial(self.is_move_safe, kwds["color"]), piece_move_generator)
+        yield from self.castling_moves(**kwds)
+
+    @seekable
+    def castling_moves(self, **kwds: Any) -> Generator[Move, None, None]:
+        pieces = kwds["pieces"]
+        color = kwds["color"]
+        row = BOARD_SIZE-1 if kwds["color"] is WHITE else 0
+        if (
+            (Piece(color, KING), Location(row, 4)) in pieces
+            and (Piece(color, ROOK), Location(row, BOARD_SIZE-1)) in pieces
+            and self.board[row, 4, 2] == 0 # King has not moved
+            and self.board[row, BOARD_SIZE-1, 2] == 0 # Kingside Rook has not moved
+            and not np.any(self.board[row, 4+1:BOARD_SIZE-1, 3]) # No pieces in between
+            and not any(self.is_in_check(color, square=(row, col)) for col in range(4, 4+2))
+                # King doesn't pass through check
+        ):
+            yield Move(
+                Location(row, 4),
+                Location(row, 4+2),
+                type=MoveType.CASTLE,
+                castle_type=CastleType.KINGSIDE
+            )
+        if (
+            (Piece(color, KING), Location(row, 4)) in pieces
+            and (Piece(color, ROOK), Location(row, 0)) in pieces
+            and self.board[row, 4, 2] == 0 # King has not moved
+            and self.board[row, 0, 2] == 0 # Queenside Rook has not moved
+            and not np.any(self.board[row, 1:4, 3]) # No pieces in between
+            and not any(self.is_in_check(color, square=(row, col)) for col in range(4-2, 4+1))
+                # King doesn't pass through check
+        ):
+            yield Move(
+                Location(row, 4),
+                Location(row, 4-2),
+                type=MoveType.CASTLE,
+                castle_type=CastleType.QUEENSIDE
+            )
 
     def is_move_safe(self, color: Color, move: Move) -> bool:
         self.execute_move(move, seek=True)
