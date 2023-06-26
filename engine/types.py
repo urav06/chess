@@ -3,8 +3,7 @@ Types used in the Chess engine.
 """
 from __future__ import annotations
 from enum import Enum, IntEnum, auto, IntFlag
-from typing import NamedTuple, Union, Tuple, Any, Optional
-from typing_extensions import SupportsIndex
+from typing import NamedTuple, Union, Tuple, Any, Optional, SupportsIndex
 
 
 class Location(NamedTuple):
