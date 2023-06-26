@@ -170,7 +170,7 @@ class Game:
             yield from piece_move_generator
         else:
             yield from filter(partial(self.is_move_safe, kwds["color"]), piece_move_generator)
-        yield from self.castling_moves(**kwds)
+            yield from self.castling_moves(**kwds)
 
     @seekable
     def castling_moves(self, **kwds: Any) -> Generator[Move, None, None]:
