@@ -68,7 +68,7 @@ class TestBishop(unittest.TestCase):
         self.game.add_piece((6, 6), (BLACK, ROOK))
         expected_legal_moves = {
             Move(self.start_loc, Location(*dest))
-            for dest in [(0, 0), (2, 2), (3, 3), (4, 4), (5, 5),(0,2),(2,0)]
+            for dest in [(0, 0), (2, 2), (3, 3), (4, 4), (5, 5), (0, 2), (2, 0) ]
         }
         calculated_legal_moves = set(self.game.legal_moves(color=BLACK,
                                                            pieces=self.piece_info))
