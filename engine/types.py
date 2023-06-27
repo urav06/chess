@@ -11,7 +11,7 @@ class Location(NamedTuple):
     j: int
 
     def __add__(self, __other: Tuple[Any, ...]) -> Location:
-        return Location(self.i+__other[0], self.j+__other[1])
+        return Location(self.i+__other[0], self.j+__other[1]) # type: ignore
 
     def __str__(self) -> str:
         return f"({self.i}, {self.j})"

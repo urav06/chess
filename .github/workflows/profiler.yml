@@ -1,6 +1,16 @@
 name: Profiler
 
-on: ["push"]
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      game-count:
+        description: "Count of games to be played"
+        required: false
+        default: 50
 
 env:
   ENVIRONMENT: "GITHUB"

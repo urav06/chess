@@ -1,40 +1,16 @@
+"""
+Test the sliding pieces (Bishop, Rook, Queen) for legal moves.
+"""
+
 import unittest
 import logging
 
 from engine.game import Game
 from engine.types import (
-    Color, Location, Move, MoveType, Piece, PieceType,
-    KING, BISHOP, QUEEN, ROOK,  # PieceTypes
+    Location, Move, MoveType, Piece,
+    KING, BISHOP, ROOK,  # PieceTypes
     WHITE, BLACK,   # Colors
 )
-
-
-# class TestSliding(unittest.TestCase):
-
-#     game: Game
-
-    # def setUpClass(cls) -> None:
-    #     cls.game = Game()
-
-#     def setUp(self) -> None:
-        # self.game.reset()
-        # self.game.add_piece((0, 4), (BLACK, KING))
-        # self.game.add_piece((7, 4), (WHITE, KING))
-
-#     def test_base_case(self) -> None:
-#         pass
-
-#     def test_penetration_case(self) -> None:
-#         pass
-
-#     def test_pinned_case(self) -> None:
-#         pass
-
-#     def test_capture_case(self) -> None:
-#         pass
-
-#     def test_obstruct_case(self) -> None:
-#         pass
 
 
 class TestBishop(unittest.TestCase):
@@ -56,8 +32,9 @@ class TestBishop(unittest.TestCase):
 
         expected_legal_moves = {
             Move(self.start_loc, Location(*dest))
-            for dest in [(0, 0), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7)                         
-                         , (0, 2), (2, 0)]
+            for dest in [
+                (0, 0), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (0, 2), (2, 0)
+            ]
         }
         calculated_legal_moves = set(self.game.legal_moves(color=BLACK,
                                                            pieces=self.piece_info))
