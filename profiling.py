@@ -1,41 +1,72 @@
-from engine import Board
-from engine_types import Color
-from main import classic_setup
-import random
+# type: ignore
+"""
+Profiling the engine
+"""
 import cProfile
+import os
+import time
 import pstats
+import random
+
+from dotenv import load_dotenv
+
+from engine import Game, Move
+from engine.fen_utils import from_fen
+from github_action_utils import GithubActionUtils as gau
 
 PER_GAME_MOVE_LIMIT = 200
-GAME_COUNT = 40
-
+GAME_COUNT = int(os.getenv("inputs.game-count", "25"))
+game_results = {}
 
 def random_game(limit: int = PER_GAME_MOVE_LIMIT) -> bool:
-    board = Board()
-    classic_setup(board)
-    for turn in range(limit):
-        to_play: Color = Color.WHITE if turn % 2 == 0 else Color.BLACK
-        player_moves = board.generate_possible_moves(to_play)
-        if not player_moves:
-            if board.is_in_check(to_play):
-                print(f"{to_play} CHECKMATED")
-                return False
-            else:
-                print(f"{to_play} STALEMATED")
-                return False
-        move = random.choice(player_moves)
-        board.execute_move(move)
-    print(f"{limit} MOVES EXHAUSTED")
-    return True
+    game = Game()
+    from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", game)
+    for _ in range(limit):
+        moves = list(game.legal_moves())
+        if not moves:
+            if game.is_in_check(color=game.active_color):
+                return "CHECKMATE"
+            return "STALEMATE"
+        move: Move = random.choice(moves)
+        game.execute_move(move)
+        game.active_color = ~game.active_color
+    return f"EXHAUSTED {limit} Moves"
 
-
-def run_games(count: int = GAME_COUNT) -> None:
+def run_games(count: int = GAME_COUNT, results = None) -> None:
     for _ in range(count):
-        random_game(PER_GAME_MOVE_LIMIT)
+        ret = random_game(PER_GAME_MOVE_LIMIT)
+        if os.getenv("ENVIRONMENT") != "GITHUB":
+            print(ret)
+        if ret not in results:
+            results[ret] = 0
+        results[ret] += 1
+    return results
+
+def run_profiler() -> None:
+    profiler = cProfile.Profile()
+    output = profiler.run("run_games(count=GAME_COUNT,results=game_results)")
+    stats = pstats.Stats(output)
+    start = time.time()
+    run_games(results=game_results)
+    elapsed = time.time() - start
+    stats.print_stats()
+    summary(stats, game_results, elapsed)
+
+def summary(stat: pstats.Stats, status: dict, raw_time: float) -> None:
+    if os.getenv("ENVIRONMENT") == "GITHUB":
+        gau.markdown_line("### Game Statuses ###")
+        gau.tabulate(["Status", "Count"], [[key, value] for key, value in status.items()])
+        gau.markdown_line("")
+        gau.markdown_line(f"Average Per Game Time: {round(stat.total_tt/GAME_COUNT, 5)} s.")
+        gau.markdown_line(f"Average Per Game Time (Raw): {round(stat.total_tt/GAME_COUNT, 5)} s.")
+    else:
+        print("GAME STATUS:")
+        for key, value in status.items():
+            print(f"{key}: {value}")
+        print(f"AVERAGE PER GAME TIME: {stat.total_tt/GAME_COUNT}")
+        print(f"AVERAGE PER GAME TIME (RAW): {raw_time/GAME_COUNT}")
 
 
 if __name__ == "__main__":
-    profiler = cProfile.Profile()
-    op = profiler.run("run_games(GAME_COUNT)")
-    stats = pstats.Stats(op)
-    op.print_stats()
-    print(f"AVERAGE PER GAME TIME: {stats.total_tt/GAME_COUNT}")
+    load_dotenv()
+    run_profiler()
