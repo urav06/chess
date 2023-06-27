@@ -25,9 +25,7 @@ class Vector(NamedTuple):
     j: int
 
     def __mul__(self, __value: Union[SupportsIndex, int]) -> Vector:
-        if isinstance(__value, int):
-            return Vector(self.i*__value, self.j*__value)
-        raise NotImplementedError(f"Can't multiply Vector and {type(__value)}")
+        return Vector(self.i*__value, self.j*__value)
 
     def __rmul__(self, __value: Union[SupportsIndex, int]) -> Vector:
         return self.__mul__(__value)
