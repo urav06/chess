@@ -3,7 +3,7 @@ Board Class
 """
 
 from itertools import product
-from typing import Tuple, Union, overload, cast
+from typing import Tuple, Union, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -31,10 +31,6 @@ class Board:
             raise ValueError(f"{location} already occupied.")
         self[location] = np.array([piece[0], piece[1], 0, 1], dtype=np.int8)
 
-
-    def is_occupied(self, loc: Tuple[int, int]) -> bool:
-        return cast(bool, self.board[loc[0], loc[1], 3] != 0)
-
     def get_piece(self, loc: Tuple[int, int]) -> Piece:
         if self[loc[0], loc[1], 3] == 0:
             raise ValueError(f"No piece at {(loc[0], loc[1])}")
@@ -52,13 +48,15 @@ class Board:
 
     @overload
     def __getitem__(self, index: Tuple[int, int]) -> npt.NDArray[np.int8]: ...
+
     @overload
     def __getitem__(
         self, index: Tuple[Union[int, slice], Union[int, slice], int]
     ) -> npt.NDArray[np.int8]: ...
+
     def __getitem__(
         self,
-        index: Union[Tuple[int, int], Tuple[Union[int, slice], Union[int, slice] ,int]]
+        index: Union[Tuple[int, int], Tuple[Union[int, slice], Union[int, slice], int]]
     ) -> npt.NDArray[np.int8]:
         if 2 <= len(index) <= 3:
             return self.board.__getitem__((*index, Ellipsis))
@@ -68,8 +66,10 @@ class Board:
     def __setitem__(
         self, index: Tuple[int, int], value: Union[npt.NDArray[np.int8], int]
     ) -> None: ...
+
     @overload
     def __setitem__(self, index: Tuple[int, int, int], value: int) -> None: ...
+
     def __setitem__(
         self, index: Tuple[int, ...], value: Union[npt.NDArray[np.int8], int]
     ) -> None:
@@ -81,7 +81,7 @@ class Board:
     def __str__(self) -> str:
         visual: str = ""
         for i, j in product(range(BOARD_SIZE), range(BOARD_SIZE)):
-            if self.is_occupied((i, j)):
+            if self[i, j, 3]:
                 piece = self.get_piece((i, j))
                 visual += f" {UNICODE_PIECES[piece.type][piece.color]} "
             else:

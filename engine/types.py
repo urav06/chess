@@ -11,11 +11,7 @@ class Location(NamedTuple):
     j: int
 
     def __add__(self, __other: Tuple[Any, ...]) -> Location:
-        if isinstance(__other, Vector):
-            return Location(self.i+__other.i, self.j+__other.j)
-        if len(__other) == 2:
-            return Location(self.i+__other[0], self.j+__other[1])
-        raise NotImplementedError(f"Can't add Location and {__other}")
+        return Location(self.i+__other[0], self.j+__other[1])
 
     def __str__(self) -> str:
         return f"({self.i}, {self.j})"
@@ -114,6 +110,7 @@ class PieceType(IntEnum):
 class Piece(NamedTuple):
     color: Color
     type: PieceType
+
 
 # Constants
 PARALLEL_DIRECTIONS = [Direction.N, Direction.S, Direction.E, Direction.W]
