@@ -59,10 +59,8 @@ def to_fen(board: Board) -> str:
     for i, rank in enumerate(board.board):
         empty_counter = 0
         for j in range(len(rank)):
-            if not board.is_occupied(i, j):
-                empty_counter += 1
-            else:
-                piece: Piece = board.get_piece(i, j)
+            if board.board[i, j, 3]:
+                piece: Piece = board.get_piece((i, j))
                 square_data = INV_FEN_MAPPING[piece]
                 if empty_counter != 0:
                     placement_string += f"{empty_counter}"
@@ -70,6 +68,9 @@ def to_fen(board: Board) -> str:
                     placement_string += f"{square_data}"
                 else:
                     placement_string += f"{square_data}"
+            else:
+                empty_counter += 1
+
         if empty_counter != 0:
             placement_string += f"{empty_counter}"
         placement_string += "/"

@@ -3,8 +3,7 @@ Types used in the Chess engine.
 """
 from __future__ import annotations
 from enum import Enum, IntEnum, auto, IntFlag
-from typing import NamedTuple, Union, Tuple, Any, Optional
-from typing_extensions import SupportsIndex
+from typing import NamedTuple, Union, Tuple, Any, Optional, SupportsIndex
 
 
 class Location(NamedTuple):
@@ -12,11 +11,7 @@ class Location(NamedTuple):
     j: int
 
     def __add__(self, __other: Tuple[Any, ...]) -> Location:
-        if isinstance(__other, Vector):
-            return Location(self.i+__other.i, self.j+__other.j)
-        if len(__other) == 2:
-            return Location(self.i+__other[0], self.j+__other[1])
-        raise NotImplementedError(f"Can't add Location and {__other}")
+        return Location(self.i+__other[0], self.j+__other[1])
 
     def __str__(self) -> str:
         return f"({self.i}, {self.j})"
@@ -30,9 +25,7 @@ class Vector(NamedTuple):
     j: int
 
     def __mul__(self, __value: Union[SupportsIndex, int]) -> Vector:
-        if isinstance(__value, int):
-            return Vector(self.i*__value, self.j*__value)
-        raise NotImplementedError(f"Can't multiply Vector and {type(__value)}")
+        return Vector(self.i*__value, self.j*__value)
 
     def __rmul__(self, __value: Union[SupportsIndex, int]) -> Vector:
         return self.__mul__(__value)
@@ -57,7 +50,7 @@ class MoveType(IntFlag):
     CAPTURE_AND_PROMOTION = CAPTURE | PROMOTION
 
     def __str__(self) -> str:
-        return " | ".join(flag.name for flag in MoveType if flag & self and flag.name)
+        return self.name or str(self.value)
 
     def __repr__(self) -> str:
         return str(self)
@@ -115,6 +108,7 @@ class PieceType(IntEnum):
 class Piece(NamedTuple):
     color: Color
     type: PieceType
+
 
 # Constants
 PARALLEL_DIRECTIONS = [Direction.N, Direction.S, Direction.E, Direction.W]
