@@ -59,7 +59,7 @@ def to_fen(board: Board) -> str:
     for i, rank in enumerate(board.board):
         empty_counter = 0
         for j in range(len(rank)):
-            if board[i, j, 3]:
+            if board.board[i, j, 3]:
                 piece: Piece = board.get_piece((i, j))
                 square_data = INV_FEN_MAPPING[piece]
                 if empty_counter != 0:

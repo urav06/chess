@@ -27,12 +27,12 @@ class Board:
         )
 
     def place_piece(self, piece: Tuple[Color, PieceType], location: Tuple[int, int]) -> None:
-        if self[location[0], location[1], 3] != 0:
+        if self.board[location[0], location[1], 3] != 0:
             raise ValueError(f"{location} already occupied.")
-        self[location] = np.array([piece[0], piece[1], 0, 1], dtype=np.int8)
+        self.board[location] = np.array([piece[0], piece[1], 0, 1], dtype=np.int8)
 
     def get_piece(self, loc: Tuple[int, int]) -> Piece:
-        if self[loc[0], loc[1], 3] == 0:
+        if self.board[loc[0], loc[1], 3] == 0:
             raise ValueError(f"No piece at {(loc[0], loc[1])}")
         return Piece(
             Color(self.board[loc[0], loc[1], 0]),
@@ -48,12 +48,10 @@ class Board:
 
     @overload
     def __getitem__(self, index: Tuple[int, int]) -> npt.NDArray[np.int8]: ...
-
     @overload
     def __getitem__(
         self, index: Tuple[Union[int, slice], Union[int, slice], int]
     ) -> npt.NDArray[np.int8]: ...
-
     def __getitem__(
         self,
         index: Union[Tuple[int, int], Tuple[Union[int, slice], Union[int, slice], int]]
@@ -66,10 +64,8 @@ class Board:
     def __setitem__(
         self, index: Tuple[int, int], value: Union[npt.NDArray[np.int8], int]
     ) -> None: ...
-
     @overload
     def __setitem__(self, index: Tuple[int, int, int], value: int) -> None: ...
-
     def __setitem__(
         self, index: Tuple[int, ...], value: Union[npt.NDArray[np.int8], int]
     ) -> None:
@@ -81,7 +77,7 @@ class Board:
     def __str__(self) -> str:
         visual: str = ""
         for i, j in product(range(BOARD_SIZE), range(BOARD_SIZE)):
-            if self[i, j, 3]:
+            if self.board[i, j, 3]:
                 piece = self.get_piece((i, j))
                 visual += f" {UNICODE_PIECES[piece.type][piece.color]} "
             else:

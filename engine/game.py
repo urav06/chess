@@ -79,7 +79,7 @@ class Game:
         pieces: set[GamePieceInfo] = kwds["pieces"]
 
         piece = board.get_piece(location)
-        board[location] = 0
+        board.board[location] = 0
         pieces.remove((piece, Location(*location)))
 
     @seekable
@@ -88,7 +88,7 @@ class Game:
         pieces: set[GamePieceInfo] = kwds["pieces"]
 
         piece = board.get_piece(location)
-        board[location[0], location[1], 1] = rank
+        board.board[location[0], location[1], 1] = rank
         pieces.remove((piece, Location(*location)))
         pieces.add((Piece(piece.color, rank), Location(*location)))
 
@@ -101,9 +101,9 @@ class Game:
         pieces: set[GamePieceInfo] = kwds["pieces"]
 
         piece = board.get_piece(source)
-        board[destination] = board[source]
-        board[source] = 0
-        board[destination[0], destination[1], 2] = 1 # Piece has moved
+        board.board[destination] = board.board[source]
+        board.board[source] = 0
+        board.board[destination[0], destination[1], 2] = 1 # Piece has moved
         pieces.remove((piece, Location(*source)))
         pieces.add((piece, Location(*destination)))
 
@@ -194,9 +194,9 @@ class Game:
         if all((
             (Piece(color, KING), king_loc) in pieces,
             (Piece(color, ROOK), Location(row, BOARD_SIZE-1)) in pieces,
-            self.board[row, 4, 2] == 0, # King has not moved
-            self.board[row, BOARD_SIZE-1, 2] == 0, # Kingside Rook has not moved
-            not np.any(self.board[row, 4+1:BOARD_SIZE-1, 3]), # No pieces in between
+            self.board.board[row, 4, 2] == 0, # King has not moved
+            self.board.board[row, BOARD_SIZE-1, 2] == 0, # Kingside Rook has not moved
+            not np.any(self.board.board[row, 4+1:BOARD_SIZE-1, 3]), # No pieces in between
             not any(self.square_attacked((row, col), ~color) for col in range(4, 4+2)),
                 # King doesn't pass through check
         )):
@@ -209,9 +209,9 @@ class Game:
         if all((
             (Piece(color, KING), king_loc) in pieces,
             (Piece(color, ROOK), Location(row, 0)) in pieces,
-            self.board[row, 4, 2] == 0, # King has not moved
-            self.board[row, 0, 2] == 0, # Queenside Rook has not moved
-            not np.any(self.board[row, 1:4, 3]), # No pieces in between
+            self.board.board[row, 4, 2] == 0, # King has not moved
+            self.board.board[row, 0, 2] == 0, # Queenside Rook has not moved
+            not np.any(self.board.board[row, 1:4, 3]), # No pieces in between
             not any(self.square_attacked((row, col), ~color) for col in range(4-2, 4+1)),
                 # King doesn't pass through check
         )):

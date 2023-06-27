@@ -43,18 +43,18 @@ def pawn_moves(board: Board, location: Location, color: Color) -> Generator[Move
     for destination in attack_diagonals:
         if (
             board.is_in_bounds(destination)
-            and board[destination[0], destination[1], 3]  # Is occupied
+            and board.board[destination[0], destination[1], 3]  # Is occupied
             and (target := board.get_piece(destination)).color is ~color
         ):
             yield from transform_promotion(Move(location, destination, CAPTURE, target), color)
 
-    if board.is_in_bounds(one_ahead) and not board[one_ahead[0], one_ahead[1], 3]:
+    if board.is_in_bounds(one_ahead) and not board.board[one_ahead[0], one_ahead[1], 3]:
         yield from transform_promotion(Move(location, one_ahead), color)
 
         if (
-            board[location[0], location[1], 2] == 0  # Has not moved
+            board.board[location[0], location[1], 2] == 0  # Has not moved
             and board.is_in_bounds(two_ahead := location + (2*front))
-            and not board[two_ahead[0], two_ahead[1], 3]
+            and not board.board[two_ahead[0], two_ahead[1], 3]
         ):
             yield Move(location, two_ahead)
 
@@ -65,7 +65,7 @@ def knight_moves(board: Board, location: Location, color: Color) -> Generator[Mo
         location+v for v in permutations(deltas, 2) if abs(v[0]) != abs(v[1])
     )
     for destination in filter(Board.is_in_bounds, destination_gen):
-        if not board[destination[0], destination[1], 3]:
+        if not board.board[destination[0], destination[1], 3]:
             yield Move(location, destination)
         elif (target := board.get_piece(destination)).color != color:
             yield Move(location, destination, CAPTURE, target)
@@ -96,7 +96,7 @@ def king_moves(board: Board, location: Location, color: Color) -> Generator[Move
         location+v for v in product(deltas, deltas) if v != (0, 0)
     )
     for destination in filter(Board.is_in_bounds, destination_gen):
-        if not board[destination[0], destination[1], 3]:
+        if not board.board[destination[0], destination[1], 3]:
             yield Move(location, destination)
         elif (target := board.get_piece(destination)).color != color:
             yield Move(location, destination, CAPTURE, target)
@@ -107,7 +107,7 @@ def slide_moves(
 ) -> Generator[Move, None, None]:
     step = 1
     while Board.is_in_bounds(destination := location+(direction*step)):
-        if not board[destination[0], destination[1], 3]:
+        if not board.board[destination[0], destination[1], 3]:
             yield Move(location, destination)
             step += 1
         elif (target := board.get_piece(destination)).color != color:
