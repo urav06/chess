@@ -5,26 +5,18 @@ Test the sliding pieces (Bishop, Rook, Queen) for legal moves.
 import unittest
 import logging
 
-from engine.game import Game
+from tests.base_pieces import BaseTestPiece
 from engine.types import (
     Location, Move, MoveType, Piece,
-    KING, BISHOP, ROOK,  # PieceTypes
+    BISHOP, ROOK,  # PieceTypes
     WHITE, BLACK,   # Colors
 )
 
 
-class TestBishop(unittest.TestCase):
-
-    game: Game
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.game = Game()
+class TestBishop(BaseTestPiece):
 
     def setUp(self) -> None:
-        self.game.reset()
-        self.game.add_piece((0, 4), (BLACK, KING))
-        self.game.add_piece((7, 4), (WHITE, KING))
+        super().setUp()
         self.start_loc = Location(1, 1)
         self.piece_info = self.game.add_piece(self.start_loc, (BLACK, BISHOP))
 
@@ -87,3 +79,7 @@ class TestBishop(unittest.TestCase):
                                                            pieces=self.piece_info))
         logging.debug("Calculated Legal moves are %s", calculated_legal_moves)
         self.assertSetEqual(calculated_legal_moves, expected_legal_moves)
+
+
+if __name__ == "__main__":
+    unittest.main()

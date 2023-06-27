@@ -3,26 +3,15 @@ Unittests for knight movement logic
 """
 import unittest
 
-from engine.game import Game
+from tests.base_pieces import BaseTestPiece
 from engine.types import (
     Location, Move, MoveType, Piece,
-    KING, KNIGHT, ROOK,# PieceTypes
+    KNIGHT, ROOK,# PieceTypes
     WHITE, BLACK, # Colors
 )
 
 
-class TestKnight(unittest.TestCase):
-
-    game: Game
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.game = Game()
-
-    def setUp(self) -> None:
-        self.game.reset()
-        self.game.add_piece((0, 4), (BLACK, KING))
-        self.game.add_piece((7, 4), (WHITE, KING))
+class TestKnight(BaseTestPiece):
 
     def test_corner_moves(self) -> None:
         """

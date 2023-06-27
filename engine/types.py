@@ -11,7 +11,7 @@ class Location(NamedTuple):
     j: int
 
     def __add__(self, __other: Tuple[Any, ...]) -> Location:
-        return Location(self.i+__other[0], self.j+__other[1]) # type: ignore
+        return Location(self.i+__other[0], self.j+__other[1])
 
     def __str__(self) -> str:
         return f"({self.i}, {self.j})"
@@ -25,7 +25,7 @@ class Vector(NamedTuple):
     j: int
 
     def __mul__(self, __value: Union[SupportsIndex, int]) -> Vector:
-        return Vector(self.i*__value, self.j*__value)
+        return Vector(self.i*__value, self.j*__value)  # type: ignore
 
     def __rmul__(self, __value: Union[SupportsIndex, int]) -> Vector:
         return self.__mul__(__value)
