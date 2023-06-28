@@ -8,9 +8,15 @@ on:
   workflow_dispatch:
     inputs:
       game-count:
-        description: "Count of games to be played"
+        description: "Number of randomized games to be play"
         required: false
-        default: 50
+        default: 45
+      run-name:
+        description: "Name of the run"
+        required: false
+        default: " "
+
+run-name: ${{ github.event.inputs.run-name }}
 
 env:
   ENVIRONMENT: "GITHUB"

@@ -55,7 +55,7 @@ def run_profiler() -> None:
 
 def summary(stat: pstats.Stats, status: dict, raw_time: float) -> None:
     if os.getenv("ENVIRONMENT") == "GITHUB":
-        gau.markdown_line(f"### Played {len(status)} Random Games ###")
+        gau.markdown_line(f"### Played {sum(status.values())} Random Games ###")
         gau.tabulate(["Status", "Count"], [[key, value] for key, value in status.items()])
         gau.markdown_line("")
         gau.markdown_line(f"Average Per Game Time: {round(stat.total_tt/GAME_COUNT, 5)} s.")
