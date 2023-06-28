@@ -14,6 +14,7 @@ from engine import Game, Move
 from engine.fen_utils import from_fen
 from github_action_utils import GithubActionUtils as gau
 
+load_dotenv()
 PER_GAME_MOVE_LIMIT = 200
 GAME_COUNT = int(os.getenv("inputs.game-count", "25"))
 game_results = {}
@@ -54,7 +55,7 @@ def run_profiler() -> None:
 
 def summary(stat: pstats.Stats, status: dict, raw_time: float) -> None:
     if os.getenv("ENVIRONMENT") == "GITHUB":
-        gau.markdown_line("### Game Statuses ###")
+        gau.markdown_line(f"### Played {len(status)} Random Games ###")
         gau.tabulate(["Status", "Count"], [[key, value] for key, value in status.items()])
         gau.markdown_line("")
         gau.markdown_line(f"Average Per Game Time: {round(stat.total_tt/GAME_COUNT, 5)} s.")
@@ -68,5 +69,4 @@ def summary(stat: pstats.Stats, status: dict, raw_time: float) -> None:
 
 
 if __name__ == "__main__":
-    load_dotenv()
     run_profiler()
