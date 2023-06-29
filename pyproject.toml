@@ -9,3 +9,6 @@ disable=[
     "E1133", # 'not-an-iterable' - false positives
     "W0511", # 'fixme' - we use fixme comments
 ]
+
+[tool.flake8]
+max-line-length=100
