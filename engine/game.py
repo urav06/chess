@@ -14,14 +14,15 @@ from engine.constants import BOARD_SIZE
 from engine.pieces import PIECE_LOGIC_MAP
 from engine.types import (
     CastleType, Color, Direction, Location, Move, MoveType, Piece, PieceType,
-    CAPTURE, # MoveTypes
-    KING, ROOK, # PieceTypes
-    WHITE, # Colors
+    CAPTURE,  # MoveTypes
+    KING, ROOK,  # PieceTypes
+    WHITE,  # Colors
 )
 
 R = TypeVar('R')
 P = ParamSpec('P')
 GamePieceInfo = tuple[Piece, Location]
+
 
 class Game:
     """
@@ -92,7 +93,6 @@ class Game:
         pieces.remove((piece, Location(*location)))
         pieces.add((Piece(piece.color, rank), Location(*location)))
 
-
     @seekable
     def move_piece(
         self, source: tuple[int, int], destination: tuple[int, int], **kwds: Any
@@ -103,7 +103,7 @@ class Game:
         piece = board.get_piece(source)
         board.board[destination] = board.board[source]
         board.board[source] = 0
-        board.board[destination[0], destination[1], 2] = 1 # Piece has moved
+        board.board[destination[0], destination[1], 2] = 1  # Piece has moved
         pieces.remove((piece, Location(*source)))
         pieces.add((piece, Location(*destination)))
 
@@ -161,10 +161,10 @@ class Game:
         )
 
     def is_in_checkmate(self, color: Color) -> bool:
-        return  not any(self.legal_moves(color=color)) and self.is_in_check(color=color)
+        return not any(self.legal_moves(color=color)) and self.is_in_check(color=color)
 
     def is_in_stalemate(self, color: Color) -> bool:
-        return  not any(self.legal_moves(color=color)) and not self.is_in_check(color=color)
+        return not any(self.legal_moves(color=color)) and not self.is_in_check(color=color)
 
     @seekable
     def legal_moves(self, unsafe: bool = False, **kwds: Any) -> Generator[Move, None, None]:
@@ -194,9 +194,9 @@ class Game:
         if all((
             (Piece(color, KING), king_loc) in pieces,
             (Piece(color, ROOK), Location(row, BOARD_SIZE-1)) in pieces,
-            self.board.board[row, 4, 2] == 0, # King has not moved
-            self.board.board[row, BOARD_SIZE-1, 2] == 0, # Kingside Rook has not moved
-            not np.any(self.board.board[row, 4+1:BOARD_SIZE-1, 3]), # No pieces in between
+            self.board.board[row, 4, 2] == 0,  # King has not moved
+            self.board.board[row, BOARD_SIZE-1, 2] == 0,  # Kingside Rook has not moved
+            not np.any(self.board.board[row, 4+1:BOARD_SIZE-1, 3]),  # No pieces in between
             not any(self.square_attacked((row, col), ~color) for col in range(4, 4+2)),
                 # King doesn't pass through check
         )):
@@ -209,9 +209,9 @@ class Game:
         if all((
             (Piece(color, KING), king_loc) in pieces,
             (Piece(color, ROOK), Location(row, 0)) in pieces,
-            self.board.board[row, 4, 2] == 0, # King has not moved
-            self.board.board[row, 0, 2] == 0, # Queenside Rook has not moved
-            not np.any(self.board.board[row, 1:4, 3]), # No pieces in between
+            self.board.board[row, 4, 2] == 0,  # King has not moved
+            self.board.board[row, 0, 2] == 0,  # Queenside Rook has not moved
+            not np.any(self.board.board[row, 1:4, 3]),  # No pieces in between
             not any(self.square_attacked((row, col), ~color) for col in range(4-2, 4+1)),
                 # King doesn't pass through check
         )):
