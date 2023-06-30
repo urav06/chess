@@ -71,7 +71,7 @@ class Move(NamedTuple):
     start: Location
     end: Location
     type: MoveType = MoveType.PASSING
-    target: Optional[Piece] = None
+    target: Optional[PieceType] = None
     castle_type: Optional[CastleType] = None
     promotion_rank: Optional[PieceType] = None
 

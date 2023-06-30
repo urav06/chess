@@ -74,7 +74,7 @@ class TestKnight(BaseTestPiece):
         ).union(self.moves(
             (3, 2), [(2, 4), (1, 1)],
             move_type=CAPTURE,
-            target=(WHITE, KNIGHT)
+            target=KNIGHT
         ))
 
         self.assert_generated_moves(expected, piece=((BLACK, KNIGHT), (3, 2)))
