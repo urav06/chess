@@ -7,7 +7,7 @@ import unittest
 
 from engine import Game
 from engine.types import (
-    Move, PieceType, Color, Location, Piece,
+    Move, PieceType, Color, Location,
     BLACK, WHITE,  # Colors
     KING,  # PieceTypes
     PASSING,

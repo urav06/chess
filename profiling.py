@@ -16,8 +16,7 @@ from github_action_utils import GithubActionUtils as gau
 
 load_dotenv()
 PER_GAME_MOVE_LIMIT = 250
-GAME_COUNT = int(os.getenv("WORKFLO_INPUT") or os.getenv("PROFILER_GAME_COUNT", "50"))
-
+GAME_COUNT = int(os.getenv("WORKFLOW_INPUT") or os.getenv("PROFILER_GAME_COUNT", "50"))
 
 
 def random_game() -> bool:

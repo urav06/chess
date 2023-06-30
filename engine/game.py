@@ -13,9 +13,9 @@ from engine.board import Board
 from engine.constants import BOARD_SIZE
 from engine.pieces import PIECE_LOGIC_MAP
 from engine.types import (
-    CastleType, Color, Direction, Location, Move, MoveType, Piece, PieceType,
+    Color, Direction, Location, Move, MoveType, Piece, PieceType,
     CAPTURE,  # MoveTypes
-    KING, ROOK,  # PieceTypes
+    KING, ROOK, QUEEN,  # PieceTypes
     WHITE,  # Colors
 )
 
@@ -128,7 +128,7 @@ class Game:
                 self.move_piece(start, end, seek=seek)
 
             case Move(start, end, MoveType.CASTLE, castle_type=castle_type):
-                castling_kingside: bool = castle_type is CastleType.KINGSIDE
+                castling_kingside: bool = castle_type is KING
                 rook_start = (start.i, (BOARD_SIZE-1 if castling_kingside else 0))
                 rook_dest = end + (Direction.W if castling_kingside else Direction.E)
                 self.move_piece(start, end, seek=seek)
@@ -204,7 +204,7 @@ class Game:
                 king_loc,
                 Location(row, 4+2),
                 type=MoveType.CASTLE,
-                castle_type=CastleType.KINGSIDE
+                castle_type=KING
             )
         if all((
             (Piece(color, KING), king_loc) in pieces,
@@ -219,7 +219,7 @@ class Game:
                 king_loc,
                 Location(row, 4-2),
                 type=MoveType.CASTLE,
-                castle_type=CastleType.QUEENSIDE
+                castle_type=QUEEN
             )
 
     def is_move_safe(self, color: Color, move: Move) -> bool:
