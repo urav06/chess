@@ -6,6 +6,7 @@ import os
 import subprocess
 from typing import Any
 
+
 class GithubActionUtils:
 
     @staticmethod
