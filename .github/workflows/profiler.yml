@@ -40,5 +40,5 @@ jobs:
     - name: Profiling the code
       run: |
         echo "## Profiler Stats :hourglass: ##" >> $GITHUB_STEP_SUMMARY
-        python profiling.py
+        WORKFLOW_INPUT=${{ github.event.inputs.game-counts }} python profiling.py
   
