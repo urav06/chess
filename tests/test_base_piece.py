@@ -7,7 +7,7 @@ import unittest
 
 from engine import Game
 from engine.types import (
-    Move, PieceType, Color, Location, Piece,
+    Move, PieceType, Color, Location,
     BLACK, WHITE,  # Colors
     KING,  # PieceTypes
     PASSING,
@@ -48,12 +48,12 @@ class BaseTestPiece(unittest.TestCase):
         end: list[tuple[int, int]],
         **kwds: Any
     ) -> set[Move]:
-        target = Piece(*kwds["target"]) if kwds.get("target") else None
+
         return {
             Move(
                 Location(*start), Location(*dest),
                 type=kwds.get("move_type", PASSING),
-                target=target,
+                target=kwds.get("target", None),
                 castle_type=kwds.get("castle_type", None)
             )
             for dest in end

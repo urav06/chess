@@ -45,7 +45,7 @@ class TestBishop(BaseTestPiece):
         expected = self.moves(
             (1, 1), [(0, 0), (2, 2), (3, 3), (4, 4), (0, 2), (2, 0)],
         ).union(self.moves(
-            (1, 1), [(5, 5)], move_type=CAPTURE, target=(WHITE, ROOK)
+            (1, 1), [(5, 5)], move_type=CAPTURE, target=ROOK
         ))
 
         self.assert_generated_moves(expected, piece=self.piece_info)

@@ -56,23 +56,12 @@ class MoveType(IntFlag):
         return str(self)
 
 
-class CastleType(IntEnum):
-    QUEENSIDE = auto()
-    KINGSIDE = auto()
-
-    def __str__(self) -> str:
-        return self.name
-
-    def __repr__(self) -> str:
-        return str(self)
-
-
 class Move(NamedTuple):
     start: Location
     end: Location
     type: MoveType = MoveType.PASSING
-    target: Optional[Piece] = None
-    castle_type: Optional[CastleType] = None
+    target: Optional[PieceType] = None
+    castle_type: Optional[PieceType] = None
     promotion_rank: Optional[PieceType] = None
 
 
