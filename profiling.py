@@ -19,6 +19,7 @@ PER_GAME_MOVE_LIMIT = 200
 GAME_COUNT = int(os.getenv("inputs.game-count", "25"))
 game_results = {}
 
+
 def random_game(limit: int = PER_GAME_MOVE_LIMIT) -> bool:
     game = Game()
     from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", game)
@@ -33,7 +34,8 @@ def random_game(limit: int = PER_GAME_MOVE_LIMIT) -> bool:
         game.active_color = ~game.active_color
     return f"EXHAUSTED {limit} Moves"
 
-def run_games(count: int = GAME_COUNT, results = None) -> None:
+
+def run_games(count: int = GAME_COUNT, results=None) -> None:
     for _ in range(count):
         ret = random_game(PER_GAME_MOVE_LIMIT)
         if os.getenv("ENVIRONMENT") != "GITHUB":
@@ -42,6 +44,7 @@ def run_games(count: int = GAME_COUNT, results = None) -> None:
             results[ret] = 0
         results[ret] += 1
     return results
+
 
 def run_profiler() -> None:
     profiler = cProfile.Profile()
@@ -52,6 +55,7 @@ def run_profiler() -> None:
     elapsed = time.time() - start
     stats.print_stats()
     summary(stats, game_results, elapsed)
+
 
 def summary(stat: pstats.Stats, status: dict, raw_time: float) -> None:
     if os.getenv("ENVIRONMENT") == "GITHUB":
