@@ -40,16 +40,16 @@ def pawn_moves(board: Board, location: Location, color: Color) -> Generator[Move
     one_ahead = location + front
     attack_diagonals = [one_ahead+Direction.E, one_ahead+Direction.W]
 
-    for destination in attack_diagonals:
+    for destination in filter(Board.is_in_bounds, attack_diagonals):
+        dest_square = board.board[destination[0], destination[1]]
         if (
-            board.is_in_bounds(destination)
-            and board.board[destination[0], destination[1], 3]  # Is occupied
-            and board.board[destination[0], destination[1], 0] == ~color  # Is enemy
+            dest_square[3]  # Is occupied
+            and dest_square[0] != color  # Is enemy
         ):
             yield from transform_promotion(
                 Move(
                     location, destination, CAPTURE,
-                    target=PieceType(board.board[destination[0], destination[1], 1])
+                    target=dest_square[1]
                 ),
                 color
             )
@@ -71,12 +71,13 @@ def knight_moves(board: Board, location: Location, color: Color) -> Generator[Mo
         location+v for v in permutations(deltas, 2) if abs(v[0]) != abs(v[1])
     )
     for destination in filter(Board.is_in_bounds, destination_gen):
-        if not board.board[destination[0], destination[1], 3]:  # Is not occupied
+        dest_square = board.board[destination[0], destination[1]]
+        if not dest_square[3]:  # Is not occupied
             yield Move(location, destination)
-        elif board.board[destination[0], destination[1], 0] == ~color:  # Is enemy
+        elif dest_square[0] != color:  # Is enemy
             yield Move(
                 location, destination, CAPTURE,
-                target=PieceType(board.board[destination[0], destination[1], 1])
+                target=dest_square[1]
             )
 
 
@@ -105,12 +106,13 @@ def king_moves(board: Board, location: Location, color: Color) -> Generator[Move
         location+v for v in product(deltas, deltas) if v != (0, 0)
     )
     for destination in filter(Board.is_in_bounds, destination_gen):
-        if not board.board[destination[0], destination[1], 3]:  # Is not occupied
+        dest_square = board.board[destination[0], destination[1]]
+        if not dest_square[3]:  # Is not occupied
             yield Move(location, destination)
-        elif board.board[destination[0], destination[1], 0] == ~color:  # Is enemy
+        elif dest_square[0] != color:  # Is enemy
             yield Move(
                 location, destination, CAPTURE,
-                target=PieceType(board.board[destination[0], destination[1], 1])
+                target=dest_square[1]
             )
 
 
@@ -119,16 +121,17 @@ def slide_moves(
 ) -> Generator[Move, None, None]:
     step = 1
     while Board.is_in_bounds(destination := location+(direction*step)):
-        if not board.board[destination[0], destination[1], 3]:  # Is not occupied
+        dest_square = board.board[destination[0], destination[1]]
+        if not dest_square[3]:  # Is not occupied
             yield Move(location, destination)
             step += 1
-        elif (target_color := board.board[destination[0], destination[1], 0]) == ~color:  # Enemy
+        elif dest_square[0] != color:  # Enemy
             yield Move(
                 location, destination, CAPTURE,
-                target=PieceType(board.board[destination[0], destination[1], 1])
+                target=dest_square[1]
             )
             break
-        elif target_color == color:
+        else:  # Friendly
             break
 
 

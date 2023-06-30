@@ -151,7 +151,7 @@ class Game:
         color = kwds["color"]
         kwds["color"] = ~color
         return any(
-            CAPTURE in move.type and move.target is KING
+            CAPTURE in move.type and move.target == KING
             for move in self.legal_moves(unsafe=True, **kwds)
         )
 
