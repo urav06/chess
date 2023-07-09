@@ -27,4 +27,4 @@ def generate_input_vector(board: Board, moves: list[Move], length: int) -> npt.N
         board.board.reshape(-1),
         np.array(list(map(vectorize_move, moves))).reshape(-1),
         np.full((length - 256 - (len(moves)*6)), -1),
-    ))
+    )).reshape(length, 1)

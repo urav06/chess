@@ -8,6 +8,7 @@ from engine.types import (
     WHITE,  # Colors
     KNIGHT  # PieceTypes
 )
+from train.constants import eta
 
 
 def cost_derivative() -> npt.NDArray[np.float64]:
@@ -22,7 +23,7 @@ def trainzzzzz():
     backpropogation(bot, input_vector, 0.1)
 
 
-def backpropogation(bot: Bot, vectorized_input: npt.NDArray[np.int8], eta):
+def backpropogation(bot: Bot, vectorized_input: npt.NDArray[np.int8]):
     activation = vectorized_input
     activations = [vectorized_input]
     zs = []
