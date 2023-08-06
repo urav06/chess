@@ -145,6 +145,19 @@ class Game:
 
             case _:
                 raise ValueError(f'Invalid Move: {move}')
+    
+    def seek_move(self, move: Move) -> Game:
+        copy_game = Game()
+        np.copyto(copy_game.board.board, self.board.board)
+        np.copyto(copy_game.seek_board.board, self.seek_board.board)
+        copy_game.active_pieces = self.active_pieces.copy()
+        copy_game.seek_board_pieces = self.seek_board_pieces.copy()
+        copy_game.active_color = self.active_color
+
+        copy_game.execute_move(move)
+        copy_game.active_color = ~copy_game.active_color
+        return copy_game
+
 
     @seekable
     def is_in_check(self, **kwds: Any) -> bool:

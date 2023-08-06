@@ -50,9 +50,10 @@ class Network:
     def backprop(
         self,
         input: npt.NDArray[np.float64],  # Input vector
-        delta: npt.NDArray[np.float64],  # Adjustment vector
+        adjustments: npt.NDArray[np.float64],  # Adjustment vector
         eta: float  # Learning rate
     ) -> None:
+        delta = -adjustments
         activation = input
         activations = [input]
         zs = []
@@ -72,3 +73,18 @@ class Network:
             delta = np.dot(self.weights[-layer+1].transpose(), delta) * afxd
             self.biases[-layer] = self.biases[-layer] - eta*delta
             self.weights[-layer] = self.weights[-layer] - eta*np.dot(delta, activations[-layer-1].transpose())
+
+    def save(self, file: str) -> None:
+        data = np.array(
+            [
+                np.array(self.biases, dtype=object),
+                np.array(self.weights, dtype=object),
+            ],
+            dtype=object
+        )
+        np.save(f"bots/weights/{file}", data, allow_pickle=True)
+
+    def load(self, file: str) -> None:
+        data = np.load(f"bots/weights/{file}.npy", allow_pickle=True)
+        self.biases = list(data[0])
+        self.weights = list(data[1])
