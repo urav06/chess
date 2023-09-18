@@ -1,10 +1,10 @@
 import random
 
-from bots.agent import Agent
+from bots.neural_network.bot import NNBot
 from engine import Game, from_fen
 
 
-def evaluate_out_of_bounds(agent: Agent) -> None:
+def evaluate_out_of_bounds(agent: NNBot) -> None:
     GAME_COUNT = 100
     MAX_MOVES = 250
     game = Game()
@@ -26,7 +26,7 @@ def evaluate_out_of_bounds(agent: Agent) -> None:
     print(f"Out of {TOTAL_SELECTED_MOVES} moves, {INVALID_SELECTED_MOVES} were invalid")
 
 
-def train_out_of_bounds(agent: Agent) -> None:
+def train_out_of_bounds(agent: NNBot) -> None:
     game = Game()
     from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", game)
     MAX_MOVES = 250
@@ -42,4 +42,4 @@ def train_out_of_bounds(agent: Agent) -> None:
 
 
 if __name__ == "__main__":
-    agent = Agent([100, 100])
+    agent = NNBot([100, 100])
