@@ -3,11 +3,11 @@ from typing import Optional
 import numpy as np
 import numpy.typing as npt
 
-from bots.model import Network, sigmoid, sigmoid_derivative, activation_fx_type
-from engine import Board, Move
+from bots.neural_network.model import Network, sigmoid, sigmoid_derivative, activation_fx_type
+from engine import Board, Game, Move
 
 
-class Agent:
+class NNBot:
 
     def __init__(
         self,
@@ -23,8 +23,9 @@ class Agent:
             activation_fx_derivative or sigmoid_derivative
         )
 
-    def select_move(self, board: Board, moves: list[Move]) -> int:
-        input_vector = self.generate_input_vector(board, moves).astype(np.float64)
+    def select_move(self, game: Game) -> int:
+        moves: list[Move] = list(game.legal_moves())
+        input_vector = self.generate_input_vector(game, moves).astype(np.float64)
         output_vector = self.network.feed_forward(input_vector)
         return np.argmax(output_vector)  # type: ignore
 
