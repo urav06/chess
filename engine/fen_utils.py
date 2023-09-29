@@ -1,30 +1,10 @@
 """
 Utils to load and save FEN strings
 """
-
-from typing import Dict
-
-from engine.constants import BOARD_SIZE
 from engine.board import Board
+from engine.constants import BOARD_SIZE, FEN_MAPPING, INV_FEN_MAPPING
 from engine.game import Game
-from engine.types import Color, Location, Piece, PieceType
-
-FEN_MAPPING: Dict[str, Piece] = {
-    "p": Piece(Color.BLACK, PieceType.PAWN),
-    "r": Piece(Color.BLACK, PieceType.ROOK),
-    "n": Piece(Color.BLACK, PieceType.KNIGHT),
-    "b": Piece(Color.BLACK, PieceType.BISHOP),
-    "q": Piece(Color.BLACK, PieceType.QUEEN),
-    "k": Piece(Color.BLACK, PieceType.KING),
-    "P": Piece(Color.WHITE, PieceType.PAWN),
-    "R": Piece(Color.WHITE, PieceType.ROOK),
-    "N": Piece(Color.WHITE, PieceType.KNIGHT),
-    "B": Piece(Color.WHITE, PieceType.BISHOP),
-    "Q": Piece(Color.WHITE, PieceType.QUEEN),
-    "K": Piece(Color.WHITE, PieceType.KING)
-}
-
-INV_FEN_MAPPING = {v: k for k, v in FEN_MAPPING.items()}
+from engine.types import Color, Location, Piece
 
 
 def from_fen(fen_string: str, game: Game) -> None:
