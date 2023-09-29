@@ -8,6 +8,7 @@ import numpy.typing as npt
 
 activation_fx_type = Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]]
 
+#TODO: Move these functions to a common package
 
 def sigmoid(x: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     return 1 / (1 + np.exp(-x))
