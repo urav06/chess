@@ -3,7 +3,7 @@ Board Class
 """
 
 from itertools import product
-from typing import Tuple, Union, overload
+from typing import Union, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -26,12 +26,12 @@ class Board:
             shape=(BOARD_SIZE, BOARD_SIZE, 4), fill_value=0, dtype=np.int8
         )
 
-    def place_piece(self, piece: Tuple[Color, PieceType], location: Tuple[int, int]) -> None:
+    def place_piece(self, piece: tuple[Color, PieceType], location: tuple[int, int]) -> None:
         if self.board[location[0], location[1], 3] != 0:
             raise ValueError(f"{location} already occupied.")
         self.board[location] = np.array([piece[0], piece[1], 0, 1], dtype=np.int8)
 
-    def get_piece(self, loc: Tuple[int, int]) -> Piece:
+    def get_piece(self, loc: tuple[int, int]) -> Piece:
         if self.board[loc[0], loc[1], 3] == 0:
             raise ValueError(f"No piece at {(loc[0], loc[1])}")
         return Piece(
@@ -43,18 +43,18 @@ class Board:
         self.board.fill(0)
 
     @staticmethod
-    def is_in_bounds(location: Tuple[int, int]) -> bool:
+    def is_in_bounds(location: tuple[int, int]) -> bool:
         return 0 <= location[0] < BOARD_SIZE and 0 <= location[1] < BOARD_SIZE
 
     @overload
-    def __getitem__(self, index: Tuple[int, int]) -> npt.NDArray[np.int8]: ...
+    def __getitem__(self, index: tuple[int, int]) -> npt.NDArray[np.int8]: ...
     @overload
     def __getitem__(
-        self, index: Tuple[Union[int, slice], Union[int, slice], int]
+        self, index: tuple[Union[int, slice], Union[int, slice], int]
     ) -> npt.NDArray[np.int8]: ...
     def __getitem__(
         self,
-        index: Union[Tuple[int, int], Tuple[Union[int, slice], Union[int, slice], int]]
+        index: Union[tuple[int, int], tuple[Union[int, slice], Union[int, slice], int]]
     ) -> npt.NDArray[np.int8]:
         if 2 <= len(index) <= 3:
             return self.board.__getitem__((*index, Ellipsis))
@@ -62,12 +62,12 @@ class Board:
 
     @overload
     def __setitem__(
-        self, index: Tuple[int, int], value: Union[npt.NDArray[np.int8], int]
+        self, index: tuple[int, int], value: Union[npt.NDArray[np.int8], int]
     ) -> None: ...
     @overload
-    def __setitem__(self, index: Tuple[int, int, int], value: int) -> None: ...
+    def __setitem__(self, index: tuple[int, int, int], value: int) -> None: ...
     def __setitem__(
-        self, index: Tuple[int, ...], value: Union[npt.NDArray[np.int8], int]
+        self, index: tuple[int, ...], value: Union[npt.NDArray[np.int8], int]
     ) -> None:
         if 2 <= len(index) <= 3:
             self.board.__setitem__(index, value)
