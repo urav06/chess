@@ -31,16 +31,14 @@ class Game:
     """
     def __init__(self) -> None:
         self.board = Board()
-        self.active_pieces: set[GamePieceInfo] = set()
         self.active_color = Color.WHITE
 
         self.seek_board = Board()
-        self.seek_board_pieces: set[GamePieceInfo] = set()
 
     @staticmethod
     def seekable(wrapped: Callable[P, R]) -> Callable[P, R]:
         """
-        Decorator to select the board, pieces, and color to use for a method.
+        Decorator to select the board, and color to use for a method.
         """
         @wraps(wrapped)
         def wrapper(*args: P.args, **kwds: P.kwargs) -> R:
@@ -48,76 +46,52 @@ class Game:
             seek: bool = cast(bool, kwds.setdefault("seek", False))
             if seek:
                 kwds["board"] = kwds.get("board") or self.seek_board
-                kwds["pieces"] = kwds.get("pieces") or self.seek_board_pieces
             else:
                 kwds["board"] = kwds.get("board") or self.board
-                kwds["pieces"] = kwds.get("pieces") or self.active_pieces
             kwds["color"] = kwds.get("color") or self.active_color
-            if isinstance(kwds["pieces"], tuple):
-                kwds["pieces"] = {kwds["pieces"]}
             return wrapped(*args, **kwds)
         return wrapper
-
-    @seekable
-    def filter_color_pieces(self, color: Color, **kwds: Any) -> set[GamePieceInfo]:
-        pieces = kwds["pieces"]
-        return set(filter(lambda x: x[0][0] is color, pieces))
 
     @seekable
     def add_piece(
         self, location: tuple[int, int], piece: tuple[Color, PieceType], **kwds: Any
     ) -> GamePieceInfo:
         board: Board = kwds["board"]
-        pieces: set[GamePieceInfo] = kwds["pieces"]
 
         board.place_piece(piece, location)
-        pieces.add((Piece(*piece), Location(*location)))
         return (Piece(*piece), Location(*location))
 
     @seekable
     def remove_piece(self, location: tuple[int, int], **kwds: Any) -> None:
         board: Board = kwds["board"]
-        pieces: set[GamePieceInfo] = kwds["pieces"]
 
-        piece = board.get_piece(location)
         board.board[location] = 0
-        pieces.remove((piece, Location(*location)))
 
     @seekable
     def promote_piece(self, location: tuple[int, int], rank: PieceType, **kwds: Any) -> None:
         board: Board = kwds["board"]
-        pieces: set[GamePieceInfo] = kwds["pieces"]
 
-        piece = board.get_piece(location)
         board.board[location[0], location[1], 1] = rank
-        pieces.remove((piece, Location(*location)))
-        pieces.add((Piece(piece.color, rank), Location(*location)))
 
     @seekable
     def move_piece(
         self, source: tuple[int, int], destination: tuple[int, int], **kwds: Any
     ) -> None:
         board: Board = kwds["board"]
-        pieces: set[GamePieceInfo] = kwds["pieces"]
 
-        piece = board.get_piece(source)
         board.board[destination] = board.board[source]
         board.board[source] = 0
         board.board[destination[0], destination[1], 2] = 1  # Piece has moved
-        pieces.remove((piece, Location(*source)))
-        pieces.add((piece, Location(*destination)))
 
     def reset(self) -> None:
         self.board.clear()
-        self.active_pieces.clear()
         self.seek_board.clear()
-        self.seek_board_pieces.clear()
+
 
     def execute_move(self, move: Move, seek: bool = False) -> None:
         if seek:
             # Refresh Seek Board Data
             np.copyto(self.seek_board.board, self.board.board)
-            self.seek_board_pieces = self.active_pieces.copy()
 
         match move:
             case Move(start, end, MoveType.PASSING):
@@ -175,7 +149,10 @@ class Game:
         :param bool seek: Whether to use the seek board and pieces.
         :param set[GamePieceInfo] pieces: Set of pieces to generate moves for.
         """
-        pieces = self.filter_color_pieces(**kwds)
+        if kwds.get("piece"):
+            pieces = {kwds["piece"]}
+        else:
+            pieces = self.board.get_pieces(kwds.get("color", self.active_color))
         piece_move_generator = chain.from_iterable(
             PIECE_LOGIC_MAP[p[0][1]](kwds["board"], Location(*p[1]), p[0][0]) for p in pieces
         )
@@ -187,7 +164,7 @@ class Game:
 
     @seekable
     def castling_moves(self, **kwds: Any) -> Generator[Move, None, None]:
-        pieces = kwds["pieces"]
+        pieces = self.board.get_pieces(kwds.get("color", self.active_color))
         color = kwds["color"]
         row = BOARD_SIZE-1 if kwds["color"] is WHITE else 0
         king_loc = Location(row, 4)

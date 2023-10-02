@@ -33,11 +33,13 @@ class BaseTestPiece(unittest.TestCase):
         piece: Optional[tuple[tuple[Color, PieceType], tuple[int, int]]] = None
     ) -> None:
         if piece:
-            calculated = calculated or self.game.legal_moves(color=piece[0][0], pieces=piece)
+            calculated = set(calculated or self.game.legal_moves(color=piece[0][0], piece=piece))
         if calculated:
             self.assertSetEqual(
-                expected, set(calculated),
-                msg=f"Missing: {expected - set(calculated)}\nExtra: {set(calculated) - expected}"
+                expected, calculated,
+                msg=f"\nGenerated: {len(calculated)} Moves"
+                    f"\nMissing {len(expected - calculated)} Moves"
+                    f"\nExtra {len(calculated - expected)} Moves"
             )
         if not piece and not calculated:
             raise ValueError("Must provide either piece or calculated.")

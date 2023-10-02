@@ -3,14 +3,15 @@ Board Class
 """
 
 from itertools import product
-from typing import Union, overload
+from typing import Union, overload, Optional
 
 import numpy as np
 import numpy.typing as npt
 
 from engine.constants import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
-from engine.types import Color, Piece, PieceType
+from engine.types import Color, Piece, PieceType, Location
 
+PieceLocation = tuple[Piece, Location]
 
 class Board:
     """
@@ -38,6 +39,15 @@ class Board:
             Color(self.board[loc[0], loc[1], 0]),
             PieceType(self.board[loc[0], loc[1], 1])
         )
+
+    def get_pieces(self, color: Optional[Color] = None) -> set[PieceLocation]:
+        if not color:
+            locations = np.argwhere(self.board[:, :, 3] == 1)
+        else:
+            locations = np.argwhere(
+                (self.board[:, :, 0] == color.value) & (self.board[:, :, 3] == 1)
+            )
+        return {(self.get_piece(loc), Location(*loc)) for loc in locations}
 
     def clear(self) -> None:
         self.board.fill(0)
