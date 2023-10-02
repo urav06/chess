@@ -31,7 +31,6 @@ def from_fen(fen_string: str, game: Game) -> None:
             if square_data != "x":
                 piece: Piece = FEN_MAPPING[square_data]
                 game.board.place_piece(piece, (i, j))
-                game.active_pieces.add((piece, Location(i, j)))
 
 
 def to_fen(board: Board) -> str:

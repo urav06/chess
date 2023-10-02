@@ -12,8 +12,6 @@ def seek_move(game: Game, move: Move) -> Game:
     copy_game = Game()
     np.copyto(copy_game.board.board, game.board.board)
     np.copyto(copy_game.seek_board.board, game.seek_board.board)
-    copy_game.active_pieces = game.active_pieces.copy()
-    copy_game.seek_board_pieces = game.seek_board_pieces.copy()
     copy_game.active_color = game.active_color
 
     copy_game.execute_move(move)
