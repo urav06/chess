@@ -7,18 +7,6 @@ from bots.neural_network.model import sigmoid
 from engine import Color, Game, Move
 
 
-def seek_move(game: Game, move: Move) -> Game:
-    #TODO: Add this as a proper feature in the engine.
-    copy_game = Game()
-    np.copyto(copy_game.board.board, game.board.board)
-    np.copyto(copy_game.seek_board.board, game.seek_board.board)
-    copy_game.active_color = game.active_color
-
-    copy_game.execute_move(move)
-    copy_game.active_color = ~copy_game.active_color
-    return copy_game
-
-
 class MinMaxBot(BaseBot):
 
     def __init__(self, color: Color, max_depth: int, name: Optional[str] = None) -> None:
@@ -32,7 +20,7 @@ class MinMaxBot(BaseBot):
         best_move = None
         best_score = float("-inf")
         for move in moves:
-            score = self.evaluate(seek_move(game, move), depth=self.max_depth, a=float("-inf"), b=float("inf"))
+            score = self.evaluate(game.seek_move(move), depth=self.max_depth, a=float("-inf"), b=float("inf"))
             if score > best_score:
                 best_move = move
                 best_score = score
@@ -60,7 +48,7 @@ class MinMaxBot(BaseBot):
 
         scores = []
         for move in game.legal_moves(color=self.color):
-            score = self.evaluate(seek_move(game, move), depth-1, a, b)
+            score = self.evaluate(game.seek_move(move), depth-1, a, b)
             scores.append(score)
 
             if game.active_color == self.color:

@@ -4,7 +4,7 @@ Utils to load and save FEN strings
 from engine.board import Board
 from engine.constants import BOARD_SIZE, FEN_MAPPING, INV_FEN_MAPPING
 from engine.game import Game
-from engine.types import Color, Location, Piece
+from engine.types import Color, Piece
 
 
 def from_fen(fen_string: str, game: Game) -> None:
