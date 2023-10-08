@@ -21,4 +21,3 @@ class BaseBot(ABC):
         """
         if game.active_color != self.color:
             raise RuntimeError(f"It's not my turn yet. I'm playing as {str(self.color).lower()}.")
-

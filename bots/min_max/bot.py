@@ -1,6 +1,8 @@
-from typing import Optional
+"""
+Minmax bot.
+"""
 
-import numpy as np
+from typing import Optional
 
 from bots.basebot import BaseBot
 from bots.neural_network.model import sigmoid
@@ -20,7 +22,9 @@ class MinMaxBot(BaseBot):
         best_move = None
         best_score = float("-inf")
         for move in moves:
-            score = self.evaluate(game.seek_move(move), depth=self.max_depth, a=float("-inf"), b=float("inf"))
+            score = self.evaluate(
+                game.seek_move(move), depth=self.max_depth, a=float("-inf"), b=float("inf")
+            )
             if score > best_score:
                 best_move = move
                 best_score = score

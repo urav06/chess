@@ -27,7 +27,9 @@ class Board:
             shape=(BOARD_SIZE, BOARD_SIZE, 4), fill_value=0, dtype=np.int8
         )
 
-    def place_piece(self, location: tuple[int, int], piece: tuple[Color, PieceType]) -> PieceLocation:
+    def place_piece(
+        self, location: tuple[int, int], piece: tuple[Color, PieceType]
+    ) -> PieceLocation:
         if self.board[location[0], location[1], 3] != 0:
             raise ValueError(f"{location} already occupied.")
         self.board[location] = np.array([piece[0], piece[1], 0, 1], dtype=np.int8)

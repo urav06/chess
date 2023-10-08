@@ -1,9 +1,13 @@
+"""
+NNBot bot.
+"""
+
 from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
 
-from bots.neural_network.model import Network, sigmoid, sigmoid_derivative, activation_fx_type
+from bots.neural_network.model import Network, sigmoid, sigmoid_derivative, ActivationFunction
 from engine import Board, Game, Move
 
 
@@ -12,8 +16,8 @@ class NNBot:
     def __init__(
         self,
         hidden_layers: list[int],
-        activation_fx: Optional[activation_fx_type] = None,
-        activation_fx_derivative: Optional[activation_fx_type] = None
+        activation_fx: Optional[ActivationFunction] = None,
+        activation_fx_derivative: Optional[ActivationFunction] = None
     ):
         self.input_layer = (64 * 4) + (150 * 6)  # 64 squares + 150 moves
         self.output_layer = 150  # 150 moves

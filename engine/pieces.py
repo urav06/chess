@@ -101,19 +101,19 @@ class PieceMovement:
     @staticmethod
     def _transform_promotion(move: Move, color: Color) -> Generator[Move, None, None]:
 
-        PROMOTABLE_RANKS = [PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT]
+        promotable_ranks = [PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT]
 
         promotion_row = 0 if color is WHITE else BOARD_SIZE-1
         match move:
             case Move(start, end, MoveType.PASSING) if end.i == promotion_row:
                 yield from (
                     Move(start, end, PROMOTION, promotion_rank=rank)
-                    for rank in PROMOTABLE_RANKS
+                    for rank in promotable_ranks
                 )
             case Move(start, end, MoveType.CAPTURE, target=target) if end.i == promotion_row:
                 yield from (
                     Move(start, end, CAPTURE_AND_PROMOTION, target=target, promotion_rank=rank)
-                    for rank in PROMOTABLE_RANKS
+                    for rank in promotable_ranks
                 )
             case _:
                 yield move
@@ -122,6 +122,7 @@ class PieceMovement:
     def _slide_moves(
         board: Board, location: Location, color: Color, direction: Direction
     ) -> Generator[Move, None, None]:
+        # TODO: Find a way to yield CAPTURE moves first. (Optimization)
         step = 1
         while Board.is_in_bounds(destination := location+(direction*step)):
             dest_square = board.board[destination[0], destination[1]]

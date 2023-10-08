@@ -1,3 +1,7 @@
+"""
+Random Bot.
+"""
+
 import random
 from typing import Optional
 

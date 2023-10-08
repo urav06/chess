@@ -25,9 +25,8 @@ if __name__ == "__main__":
 
     if game.is_in_checkmate(game.active_color):
         print(f"{~game.active_color} wins by checkmate.")
-    
+
     elif game.is_in_stalemate(game.active_color):
         print(f"{~game.active_color} draws by stalemate.")
     else:
         print("Something fucky happened.")
-
