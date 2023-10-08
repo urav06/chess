@@ -18,7 +18,7 @@ class TestBishop(BaseTestPiece):
     def setUp(self) -> None:
         super().setUp()
         self.start_loc = Location(1, 1)
-        self.piece_info = self.game.add_piece(Location(1, 1), (BLACK, BISHOP))
+        self.piece_info = self.game.board.place_piece(Location(1, 1), (BLACK, BISHOP))
 
     def test_base_case(self) -> None:
         expected = self.moves(
@@ -27,7 +27,7 @@ class TestBishop(BaseTestPiece):
         self.assert_generated_moves(expected, piece=self.piece_info)
 
     def test_penetration_case(self) -> None:
-        self.game.add_piece((6, 6), (BLACK, ROOK))
+        self.game.board.place_piece((6, 6), (BLACK, ROOK))
         expected = self.moves(
             (1, 1), [(0, 0), (2, 2), (3, 3), (4, 4), (5, 5), (0, 2), (2, 0)]
         )
@@ -35,13 +35,13 @@ class TestBishop(BaseTestPiece):
         self.assert_generated_moves(expected, piece=self.piece_info)
 
     def test_pinned_case(self) -> None:
-        self.game.add_piece((6, 4), (WHITE, ROOK))
+        self.game.board.place_piece((6, 4), (WHITE, ROOK))
         expected = self.moves((1, 1), [(4, 4)])
 
         self.assert_generated_moves(expected, piece=self.piece_info)
 
     def test_capture_case(self) -> None:
-        self.game.add_piece((5, 5), (WHITE, ROOK))
+        self.game.board.place_piece((5, 5), (WHITE, ROOK))
         expected = self.moves(
             (1, 1), [(0, 0), (2, 2), (3, 3), (4, 4), (0, 2), (2, 0)],
         ).union(self.moves(
@@ -51,7 +51,7 @@ class TestBishop(BaseTestPiece):
         self.assert_generated_moves(expected, piece=self.piece_info)
 
     def test_obstruct_case(self) -> None:
-        self.game.add_piece((4, 4), (BLACK, ROOK))
+        self.game.board.place_piece((4, 4), (BLACK, ROOK))
         expected = self.moves((1, 1), [(0, 0), (2, 2), (3, 3), (0, 2), (2, 0)])
 
         self.assert_generated_moves(expected, piece=self.piece_info)

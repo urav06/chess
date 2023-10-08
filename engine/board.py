@@ -27,10 +27,22 @@ class Board:
             shape=(BOARD_SIZE, BOARD_SIZE, 4), fill_value=0, dtype=np.int8
         )
 
-    def place_piece(self, piece: tuple[Color, PieceType], location: tuple[int, int]) -> None:
+    def place_piece(self, location: tuple[int, int], piece: tuple[Color, PieceType]) -> PieceLocation:
         if self.board[location[0], location[1], 3] != 0:
             raise ValueError(f"{location} already occupied.")
         self.board[location] = np.array([piece[0], piece[1], 0, 1], dtype=np.int8)
+        return (Piece(*piece), Location(*location))
+
+    def remove_piece(self, location: tuple[int, int]) -> None:
+        self.board[location[0], location[1], 3] = 0  # Mark square as unoccupied
+
+    def promote_piece(self, location: tuple[int, int], rank: PieceType) -> None:
+        self.board[location[0], location[1], 1] = rank
+
+    def move_piece(self, start: tuple[int, int], end: tuple[int, int]) -> None:
+        self.board[end] = self.board[start]
+        self.board[start[0], start[1], 3] = 0  # Mark square as unoccupied
+        self.board[end[0], end[1], 2] = 1  # Mark piece as moved
 
     def get_piece(self, loc: tuple[int, int]) -> Piece:
         if self.board[loc[0], loc[1], 3] == 0:
@@ -45,7 +57,7 @@ class Board:
             locations = np.argwhere(self.board[:, :, 3] == 1)
         else:
             locations = np.argwhere(
-                (self.board[:, :, 0] == color.value) & (self.board[:, :, 3] == 1)
+                (self.board[:, :, 3] == 1) & (self.board[:, :, 0] == color.value)
             )
         return {(self.get_piece(loc), Location(*loc)) for loc in locations}
 

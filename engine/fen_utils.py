@@ -4,7 +4,7 @@ Utils to load and save FEN strings
 from engine.board import Board
 from engine.constants import BOARD_SIZE, FEN_MAPPING, INV_FEN_MAPPING
 from engine.game import Game
-from engine.types import Color, Location, Piece
+from engine.types import Color, Piece
 
 
 def from_fen(fen_string: str, game: Game) -> None:
@@ -30,7 +30,7 @@ def from_fen(fen_string: str, game: Game) -> None:
         for j, square_data in enumerate(rank_repr):
             if square_data != "x":
                 piece: Piece = FEN_MAPPING[square_data]
-                game.board.place_piece(piece, (i, j))
+                game.board.place_piece((i, j), piece)
 
 
 def to_fen(board: Board) -> str:
