@@ -57,7 +57,7 @@ class Board:
             locations = np.argwhere(self.board[:, :, 3] == 1)
         else:
             locations = np.argwhere(
-                (self.board[:, :, 0] == color.value) & (self.board[:, :, 3] == 1)
+                (self.board[:, :, 3] == 1) & (self.board[:, :, 0] == color.value)
             )
         return {(self.get_piece(loc), Location(*loc)) for loc in locations}
 
