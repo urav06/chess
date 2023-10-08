@@ -24,8 +24,8 @@ class BaseTestPiece(unittest.TestCase):
 
     def setUp(self) -> None:
         self.game.reset()
-        self.game.add_piece((0, 4), (BLACK, KING))
-        self.game.add_piece((7, 4), (WHITE, KING))
+        self.game.board.place_piece((0, 4), (BLACK, KING))
+        self.game.board.place_piece((7, 4), (WHITE, KING))
 
     def assert_generated_moves(
         self, expected: set[Move],

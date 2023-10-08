@@ -28,21 +28,6 @@ class Game:
         self.board = Board()
         self.active_color = Color.WHITE
 
-    def add_piece(self, location: tuple[int, int], piece: tuple[Color, PieceType]) -> PieceLocation:
-        self.board.place_piece(piece, location)
-        return (Piece(*piece), Location(*location))
-
-    def remove_piece(self, location: tuple[int, int]) -> None:
-        self.board.board[location] = 0
-
-    def promote_piece(self, location: tuple[int, int], rank: PieceType) -> None:
-        self.board.board[location[0], location[1], 1] = rank
-
-    def move_piece(self, source: tuple[int, int], destination: tuple[int, int]) -> None:
-        self.board.board[destination] = self.board.board[source]
-        self.board.board[source] = 0
-        self.board.board[destination[0], destination[1], 2] = 1  # Piece has moved
-
     def reset(self) -> None:
         self.board.clear()
         self.active_color = Color.WHITE
@@ -50,26 +35,26 @@ class Game:
     def execute_move(self, move: Move) -> None:
         match move:
             case Move(start, end, MoveType.PASSING):
-                self.move_piece(start, end)
+                self.board.move_piece(start, end)
 
             case Move(start, end, MoveType.CAPTURE, target=_):
-                self.remove_piece(end)
-                self.move_piece(start, end)
+                self.board.remove_piece(end)
+                self.board.move_piece(start, end)
 
             case Move(start, end, MoveType.CASTLE, castle_type=castle_type):
                 rook_start = (start.i, (BOARD_SIZE-1 if castle_type is KING else 0))
                 rook_dest = end + (Direction.W if castle_type is KING else Direction.E)
-                self.move_piece(start, end)
-                self.move_piece(rook_start, rook_dest)
+                self.board.move_piece(start, end)
+                self.board.move_piece(rook_start, rook_dest)
 
             case Move(start, end, MoveType.PROMOTION, promotion_rank=rank) if rank:
-                self.move_piece(start, end)
-                self.promote_piece(end, rank)
+                self.board.move_piece(start, end)
+                self.board.promote_piece(end, rank)
 
             case Move(start, end, MoveType.CAPTURE_AND_PROMOTION, promotion_rank=rank) if rank:
-                self.remove_piece(end)
-                self.move_piece(start, end)
-                self.promote_piece(end, rank)
+                self.board.remove_piece(end)
+                self.board.move_piece(start, end)
+                self.board.promote_piece(end, rank)
 
             case _:
                 raise ValueError(f'Invalid Move: {move}')

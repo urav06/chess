@@ -26,7 +26,7 @@ class TestKnight(BaseTestPiece):
             ◻  ◼  ◻  ◼  ◻  ◼  ◻  ◼
             ◼  ◻  ◼  ◻  ♔  ◻  ◼  ◻
         """
-        self.game.add_piece((1, 1), (BLACK, KNIGHT))
+        self.game.board.place_piece((1, 1), (BLACK, KNIGHT))
         expected = self.moves((1, 1), [(2, 3), (3, 2), (0, 3), (3, 0)])
 
         self.assert_generated_moves(expected, piece=((BLACK, KNIGHT), (1, 1)))
@@ -44,7 +44,7 @@ class TestKnight(BaseTestPiece):
             ◻  ◼  ◻  ◼  ◻  ◼  ◻  ◼
             ◼  ◻  ◼  ◻  ♔  ◻  ◼  ◻
         """
-        self.game.add_piece((4, 4), (WHITE, KNIGHT))
+        self.game.board.place_piece((4, 4), (WHITE, KNIGHT))
         expected = self.moves(
             (4, 4), [(5, 6), (6, 5), (2, 3), (3, 2), (5, 2), (6, 3), (3, 6), (2, 5)]
         )
@@ -65,9 +65,9 @@ class TestKnight(BaseTestPiece):
             ◼  ◻  ◼  ◻  ♔  ◻  ◼  ◻
 
         """
-        self.game.add_piece((3, 2), (BLACK, KNIGHT))
-        self.game.add_piece((2, 4), (WHITE, KNIGHT))
-        self.game.add_piece((1, 1), (WHITE, KNIGHT))
+        self.game.board.place_piece((3, 2), (BLACK, KNIGHT))
+        self.game.board.place_piece((2, 4), (WHITE, KNIGHT))
+        self.game.board.place_piece((1, 1), (WHITE, KNIGHT))
 
         expected = self.moves(
             (3, 2), [(2, 0), (4, 0), (5, 1), (1, 3), (5, 3), (4, 4)]
@@ -92,8 +92,8 @@ class TestKnight(BaseTestPiece):
             ◻  ◼  ◻  ◼  ♖  ◼  ◻  ◼
             ◼  ◻  ◼  ◻  ♔  ◻  ◼  ◻
         """
-        self.game.add_piece((3, 3), (BLACK, KNIGHT))
-        self.game.add_piece((6, 4), (WHITE, ROOK))
+        self.game.board.place_piece((3, 3), (BLACK, KNIGHT))
+        self.game.board.place_piece((6, 4), (WHITE, ROOK))
         expected = self.moves(
             (3, 3), [(1, 4), (5, 4)]
         )

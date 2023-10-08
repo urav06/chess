@@ -30,7 +30,7 @@ def from_fen(fen_string: str, game: Game) -> None:
         for j, square_data in enumerate(rank_repr):
             if square_data != "x":
                 piece: Piece = FEN_MAPPING[square_data]
-                game.board.place_piece(piece, (i, j))
+                game.board.place_piece((i, j), piece)
 
 
 def to_fen(board: Board) -> str:
