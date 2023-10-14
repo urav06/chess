@@ -26,7 +26,6 @@ def evaluate_out_of_bounds(agent: NNBot) -> None:
                 invalid_selected_moves += 1
                 agent_move = random.randint(0, len(moves)-1)
             game.execute_move(moves[agent_move])
-            game.active_color = ~game.active_color
     print(f"Out of {total_selected_moves} moves, {invalid_selected_moves} were invalid")
 
 
@@ -42,7 +41,6 @@ def train_out_of_bounds(agent: NNBot) -> None:
         if agent_move >= len(moves):
             agent_move = random.randint(0, len(moves)-1)
         game.execute_move(moves[agent_move])
-        game.active_color = ~game.active_color
 
 
 if __name__ == "__main__":

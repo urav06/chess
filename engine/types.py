@@ -66,7 +66,7 @@ class Move(NamedTuple):
 
 
 class Color(IntEnum):
-    BLACK = auto()  # Starts with 1
+    BLACK = auto()  # Starts at 1
     WHITE = auto()
 
     def __invert__(self) -> Color:
@@ -80,7 +80,7 @@ class Color(IntEnum):
 
 
 class PieceType(IntEnum):
-    PAWN = auto()  # Starts with 1
+    PAWN = auto()  # Starts at 1
     KNIGHT = auto()
     BISHOP = auto()
     ROOK = auto()

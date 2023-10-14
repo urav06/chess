@@ -31,8 +31,8 @@ class MinMaxBot(BaseBot):
         return best_move
 
     def leaf_node_heuristics(self, game: Game) -> float:
-        my_pieces = game.filter_color_pieces(color=self.color)
-        opponent_pieces = game.filter_color_pieces(color=~self.color)
+        my_pieces = game.board.get_pieces(color=self.color)
+        opponent_pieces = game.board.get_pieces(color=~self.color)
 
         advantage = (len(my_pieces) - len(opponent_pieces))/(len(my_pieces) + len(opponent_pieces))
 

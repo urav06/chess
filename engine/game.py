@@ -59,13 +59,14 @@ class Game:
             case _:
                 raise ValueError(f'Invalid Move: {move}')
 
+        self.active_color = ~self.active_color
+
     def seek_move(self, move: Move) -> Game:
         game_copy = Game()
         np.copyto(game_copy.board.board, self.board.board)
         game_copy.active_color = self.active_color
 
         game_copy.execute_move(move)
-        game_copy.active_color = ~game_copy.active_color
         return game_copy
 
     def is_in_check(self, color: Color) -> bool:
@@ -96,7 +97,7 @@ class Game:
 
         :param color: Color of the pieces to generate moves for. Defaults to `self.active_color`
         :param PieceLocation piece: The selected piece to generate moves for. Optional.
-        :param unsafe: A flag to ignore depth 2 checks.
+        :param unsafe: A flag to ignore depth 2 checks. Allowing pseudo-legal moves.
         """
         color = color or self.active_color
         pieces = {piece} if piece else self.board.get_pieces(color=color)
@@ -111,14 +112,11 @@ class Game:
 
     def castling_moves(self, color: Optional[Color] = None) -> Generator[Move, None, None]:
         color = color or self.active_color
-        pieces = self.board.get_pieces(color)
         row = BOARD_SIZE-1 if color is WHITE else 0
         king_loc = Location(row, 4)
         if all((
-            (Piece(color, KING), king_loc) in pieces,
-            (Piece(color, ROOK), Location(row, BOARD_SIZE-1)) in pieces,
-            self.board.board[row, 4, 2] == 0,  # King has not moved
-            self.board.board[row, BOARD_SIZE-1, 2] == 0,  # Kingside Rook has not moved
+            np.array_equal(self.board[king_loc], [color, KING, 0, 1]),
+            np.array_equal(self.board[(row, BOARD_SIZE-1)], [color, ROOK, 0, 1]),
             not np.any(self.board.board[row, 4+1:BOARD_SIZE-1, 3]),  # No pieces in between
             not any(self.square_attacked((row, col), ~color) for col in range(4, 4+2)),
                 # King doesn't pass through check
@@ -130,10 +128,8 @@ class Game:
                 castle_type=KING
             )
         if all((
-            (Piece(color, KING), king_loc) in pieces,
-            (Piece(color, ROOK), Location(row, 0)) in pieces,
-            self.board.board[row, 4, 2] == 0,  # King has not moved
-            self.board.board[row, 0, 2] == 0,  # Queenside Rook has not moved
+            np.array_equal(self.board[king_loc], [color, KING, 0, 1]),
+            np.array_equal(self.board[(row, 0)], [color, ROOK, 0, 1]),
             not np.any(self.board.board[row, 1:4, 3]),  # No pieces in between
             not any(self.square_attacked((row, col), ~color) for col in range(4-2, 4+1)),
                 # King doesn't pass through check

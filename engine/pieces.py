@@ -1,5 +1,5 @@
 """
-Movement logic of all the pieces
+Movement logic of all the pieces. Generates pseudo-legal moves
 """
 
 from itertools import chain, permutations, product
