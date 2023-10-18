@@ -13,6 +13,7 @@ class BaseBot(ABC):
     """
     def __init__(self, color: Color) -> None:
         self.color = color
+        self.name = f"{color.name.capitalize()}_{self.__class__.__name__}"
 
     @abstractmethod
     def select_move(self, game: Game) -> Optional[Move]:

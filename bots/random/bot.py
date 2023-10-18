@@ -11,8 +11,9 @@ from engine import Color, Game, Move
 
 class RandomBot(BaseBot):
 
-    def __init__(self, color: Color) -> None:
+    def __init__(self, color: Color, name: Optional[str] = None) -> None:
         super().__init__(color)
+        self.name = name or self.name
 
     def select_move(self, game: Game) -> Optional[Move]:
         super().select_move(game)

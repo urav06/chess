@@ -14,11 +14,12 @@ if __name__ == "__main__":
 
     while next(game.legal_moves(), False):
         if game.active_color == mmb.color:
-            selected_move = mmb.select_move(game)
+            active_player = mmb
         else:
-            selected_move = rb.select_move(game)
+            active_player = rb
+        selected_move = active_player.select_move(game)
         game.execute_move(selected_move)
-        print(f"{game.active_color} played {selected_move}")
+        print(f"{active_player.name} played {selected_move}")
         print(game.board)
 
     if game.is_in_checkmate(game.active_color):

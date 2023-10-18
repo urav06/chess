@@ -14,7 +14,7 @@ class MinMaxBot(BaseBot):
     def __init__(self, color: Color, max_depth: int, name: Optional[str] = None) -> None:
         super().__init__(color)
         self.max_depth = max_depth
-        self.name = name or f"minmaxbot_{str(color).lower()}_{max_depth}"
+        self.name = name or f"{self.name}_{max_depth}"
 
     def select_move(self, game: Game) -> Optional[Move]:
         super().select_move(game)
