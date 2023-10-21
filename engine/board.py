@@ -8,7 +8,7 @@ from typing import Union, overload, Optional
 import numpy as np
 import numpy.typing as npt
 
-from engine.constants import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE
+from engine.constants import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE, BOARD_DRAWING
 from engine.types import Color, Piece, PieceType, Location
 
 PieceLocation = tuple[Piece, Location]
@@ -99,16 +99,22 @@ class Board:
             raise IndexError(f"Invalid index {index} for Board.")
 
     def __str__(self) -> str:
-        visual: str = ""
-        for i, j in product(range(BOARD_SIZE), range(BOARD_SIZE)):
-            if self.board[i, j, 3]:
-                piece = self.get_piece((i, j))
-                visual += f" {UNICODE_PIECES[piece.type][piece.color]} "
+        visual: list[str] = list(BOARD_DRAWING)
+        for i, j in np.argwhere(self.board[:, :, 3] == 1):
+            line_number = 2*i+1
+            col_number = 4*j+2
+            index = (34*line_number) + col_number
+            piece = self.get_piece((i, j))
+            
+            if len(piece_visual := UNICODE_PIECES[piece.type][piece.color]) == 1:
+                visual[index] = piece_visual
+                visual[index-1] = " "
+                visual[index+1] = " "
             else:
-                square_color = Color.BLACK if (i % 2 == 0) ^ (j % 2 == 0) else Color.WHITE
-                visual += f" {UNICODE_SQUARE[square_color]} "
-            if j == BOARD_SIZE - 1:
-                visual += "\n"
-        return visual
+                visual[index-1] = piece_visual[0]
+                visual[index] = piece_visual[1]
+                visual[index+1] = piece_visual[2]
+
+        return "".join(visual)
 
     __repr__ = __str__

@@ -5,12 +5,12 @@ from engine.types import PieceType, Color, Piece
 
 BOARD_SIZE = 8
 UNICODE_PIECES = {
-    PieceType.PAWN: {Color.BLACK: "p", Color.WHITE: "P"},
-    PieceType.KNIGHT: {Color.BLACK: "n", Color.WHITE: "N"},
-    PieceType.BISHOP: {Color.BLACK: "b", Color.WHITE: "B"},
-    PieceType.ROOK: {Color.BLACK: "r", Color.WHITE: "R"},
-    PieceType.QUEEN: {Color.BLACK: "q", Color.WHITE: "Q"},
-    PieceType.KING: {Color.BLACK: "k", Color.WHITE: "K"},
+    PieceType.PAWN: {Color.BLACK: "◯", Color.WHITE: "●"},
+    PieceType.KNIGHT: {Color.BLACK: "N", Color.WHITE: "❰N❱"},
+    PieceType.BISHOP: {Color.BLACK: "B", Color.WHITE: "❰B❱"},
+    PieceType.ROOK: {Color.BLACK: "R", Color.WHITE: "❰R❱"},
+    PieceType.QUEEN: {Color.BLACK: "Q", Color.WHITE: "❰Q❱"},
+    PieceType.KING: {Color.BLACK: "◺△◿", Color.WHITE: "◣▲◢"},
 }
 UNICODE_SQUARE = {Color.BLACK: "◼", Color.WHITE: "◻"}
 
@@ -29,3 +29,21 @@ FEN_MAPPING: dict[str, Piece] = {
     "K": Piece(Color.WHITE, PieceType.KING)
 }
 INV_FEN_MAPPING = {v: k for k, v in FEN_MAPPING.items()}
+
+BOARD_DRAWING = """╔═══╤═══╤═══╤═══╤═══╤═══╤═══╤═══╗
+║▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░║
+╟───┼───┼───┼───┼───┼───┼───┼───╢
+║░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓║
+╟───┼───┼───┼───┼───┼───┼───┼───╢
+║▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░║
+╟───┼───┼───┼───┼───┼───┼───┼───╢
+║░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓║
+╟───┼───┼───┼───┼───┼───┼───┼───╢
+║▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░║
+╟───┼───┼───┼───┼───┼───┼───┼───╢
+║░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓║
+╟───┼───┼───┼───┼───┼───┼───┼───╢
+║▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░║
+╟───┼───┼───┼───┼───┼───┼───┼───╢
+║░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓│░░░│▓▓▓║
+╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝"""
