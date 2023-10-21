@@ -14,7 +14,7 @@ class MinMaxBot(BaseBot):
     def __init__(self, color: Color, max_depth: int, name: Optional[str] = None) -> None:
         super().__init__(color)
         self.max_depth = max_depth
-        self.name = name or f"{self.name}_{max_depth}"
+        self.name = name or f"{self.name}_d{max_depth}"
 
     def select_move(self, game: Game) -> Optional[Move]:
         super().select_move(game)
@@ -41,17 +41,19 @@ class MinMaxBot(BaseBot):
 
     def evaluate(self, game: Game, depth: int, a: int, b: int) -> float:
 
-        if game.is_in_checkmate(self.color):
-            return float("-inf")
+        if game.is_in_checkmate(game.active_color):
+            if game.active_color == self.color:
+                # I'm in checkmate
+                return float("-inf")
+            else:
+                # Opponent is in checkmate
+                return float("inf")
 
-        if game.is_in_checkmate(~self.color):
-            return float("inf")
-
-        if depth == 0 or game.is_in_stalemate(self.color) or game.is_in_stalemate(~self.color):
+        if depth == 0 or game.is_in_stalemate(game.active_color):
             return self.leaf_node_heuristics(game)
 
         scores = []
-        for move in game.legal_moves(color=self.color):
+        for move in game.legal_moves(color=game.active_color):
             score = self.evaluate(game.seek_move(move), depth-1, a, b)
             scores.append(score)
 
