@@ -35,6 +35,6 @@ if __name__ == "__main__":
         print(f"{~game.active_color} draws by stalemate.")
     else:
         print("Something fucky happened.")
-    
+
     players[0].display_time_taken()
     players[1].display_time_taken()

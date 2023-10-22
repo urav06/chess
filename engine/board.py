@@ -1,14 +1,12 @@
 """
 Board Class
 """
-
-from itertools import product
 from typing import Union, overload, Optional
 
 import numpy as np
 import numpy.typing as npt
 
-from engine.constants import BOARD_SIZE, UNICODE_PIECES, UNICODE_SQUARE, BOARD_DRAWING
+from engine.constants import BOARD_SIZE, UNICODE_PIECES, BOARD_DRAWING
 from engine.types import Color, Piece, PieceType, Location
 
 PieceLocation = tuple[Piece, Location]
@@ -105,7 +103,7 @@ class Board:
             col_number = 4*j+2
             index = (34*line_number) + col_number
             piece = self.get_piece((i, j))
-            
+
             if len(piece_visual := UNICODE_PIECES[piece.type][piece.color]) == 1:
                 visual[index] = piece_visual
                 visual[index-1] = " "

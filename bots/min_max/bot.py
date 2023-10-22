@@ -42,12 +42,7 @@ class MinMaxBot(BaseBot):
     def evaluate(self, game: Game, depth: int, a: int, b: int) -> float:
 
         if game.is_in_checkmate(game.active_color):
-            if game.active_color == self.color:
-                # I'm in checkmate
-                return float("-inf")
-            else:
-                # Opponent is in checkmate
-                return float("inf")
+            return float("-inf") if game.active_color == self.color else float("inf")
 
         if depth == 0 or game.is_in_stalemate(game.active_color):
             return self.leaf_node_heuristics(game)

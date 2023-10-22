@@ -13,7 +13,7 @@ from engine.board import Board, PieceLocation
 from engine.constants import BOARD_SIZE
 from engine.pieces import PIECE_LOGIC_MAP
 from engine.types import (
-    Color, Direction, Location, Move, MoveType, Piece,
+    Color, Direction, Location, Move, MoveType,
     CAPTURE,  # MoveTypes
     KING, ROOK, QUEEN,  # PieceTypes
     WHITE,  # Colors
