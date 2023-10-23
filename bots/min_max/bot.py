@@ -41,8 +41,10 @@ class MinMaxBot(BaseBot):
 
     def evaluate(self, game: Game, depth: int, a: int, b: int) -> float:
 
+        its_my_turn = game.active_color == self.color
+
         if game.is_in_checkmate(game.active_color):
-            return float("-inf") if game.active_color == self.color else float("inf")
+            return float("-inf") if its_my_turn else float("inf")
 
         if depth == 0 or game.is_in_stalemate(game.active_color):
             return self.leaf_node_heuristics(game)
@@ -52,7 +54,7 @@ class MinMaxBot(BaseBot):
             score = self.evaluate(game.seek_move(move), depth-1, a, b)
             scores.append(score)
 
-            if game.active_color == self.color:
+            if its_my_turn:
                 a = max(a, score)
 
             else:
@@ -61,7 +63,7 @@ class MinMaxBot(BaseBot):
             if a - b < 0:
                 break
 
-        return max(scores) if game.active_color == self.color else min(scores)
+        return max(scores) if its_my_turn else min(scores)
 
     def __str__(self) -> str:
         return self.name

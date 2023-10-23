@@ -14,7 +14,8 @@ class BaseBot(ABC):
     def __init__(self, color: Color) -> None:
         self.color = color
         self.name = f"{color.name.capitalize()}_{self.__class__.__name__}"
-        self.total_time = 0
+        self.clock = 0
+        self.move_count = 0
 
     @abstractmethod
     def select_move(self, game: Game) -> Optional[Move]:
@@ -25,4 +26,4 @@ class BaseBot(ABC):
             raise RuntimeError(f"It's not my turn yet. I'm playing as {str(self.color).lower()}.")
 
     def display_time_taken(self) -> None:
-        print(f"{self.name} took {round(self.total_time, 5)}s.")
+        print(f"{self.name} took {round(self.clock, 5)}s.")

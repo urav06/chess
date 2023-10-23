@@ -4,7 +4,7 @@ Utils to load and save FEN strings
 from engine.board import Board
 from engine.constants import BOARD_SIZE, FEN_MAPPING, INV_FEN_MAPPING
 from engine.game import Game
-from engine.types import Color, Piece
+from engine.types import Color, Piece, BLACK, WHITE
 
 
 def from_fen(fen_string: str, game: Game) -> None:
@@ -14,15 +14,14 @@ def from_fen(fen_string: str, game: Game) -> None:
         placement_string: str = fen_data[0]
     elif len(fen_data) == 6:
         placement_string, active_color_data, _, _, _, _ = fen_data
-        active_color: Color = Color.BLACK if active_color_data.lower() == "b"\
-            else Color.WHITE
+        active_color: Color = BLACK if active_color_data.lower() == "b" else WHITE
         game.active_color = active_color
 
     placement_data: list[str] = placement_string.split("/")
     if len(placement_data) != BOARD_SIZE:
         raise ValueError(f"Invalid number of rows in the FEN string: {len(placement_data)}")
 
-    game.reset()
+    game.board.clear()
     for i, rank_data in enumerate(placement_data):
         rank_repr = "".join(
             int(c)*"x" if c.isdigit() else c for c in rank_data
