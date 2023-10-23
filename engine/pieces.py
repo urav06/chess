@@ -124,19 +124,21 @@ class PieceMovement:
     ) -> Generator[Move, None, None]:
         # TODO: Find a way to yield CAPTURE moves first. (Optimization)
         step = 1
+        moves = []
         while Board.is_in_bounds(destination := location+(direction*step)):
             dest_square = board.board[destination[0], destination[1]]
             if not dest_square[3]:  # Is not occupied
-                yield Move(location, destination)
+                moves.append(Move(location, destination))
                 step += 1
             elif dest_square[0] != color:  # Enemy
-                yield Move(
+                moves.append(Move(
                     location, destination, CAPTURE,
                     target=dest_square[1]
-                )
+                ))
                 break
             else:  # Friendly
                 break
+        yield from capture_moves_first(moves)
 
 
 PIECE_LOGIC_MAP: Dict[
@@ -149,3 +151,6 @@ PIECE_LOGIC_MAP: Dict[
     QUEEN: PieceMovement.queen_moves,
     KING: PieceMovement.king_moves
 }
+
+def capture_moves_first(moves: list[Move]) -> list[Move]:
+    return [m for m in moves if CAPTURE in m.type] + [m for m in moves if CAPTURE not in m.type]
