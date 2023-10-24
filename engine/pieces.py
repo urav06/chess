@@ -5,6 +5,7 @@ Movement logic of all the pieces. Generates pseudo-legal moves
 from itertools import chain, permutations, product
 from typing import Generator, Dict, Callable
 
+from engine.bit_utils import apply_mask
 from engine.constants import BOARD_SIZE
 from engine.board import Board
 from engine.types import (
@@ -65,22 +66,15 @@ class PieceMovement:
 
     @staticmethod
     def bishop_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-        yield from chain.from_iterable(
-            PieceMovement._slide_moves(board, location, color, d) for d in DIAGONAL_DIRECTIONS
-        )
+        yield from PieceMovement._slide_moves(board, location, color, "D")
 
     @staticmethod
     def rook_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-        yield from chain.from_iterable(
-            PieceMovement._slide_moves(board, location, color, d) for d in PARALLEL_DIRECTIONS
-        )
+        yield from PieceMovement._slide_moves(board, location, color, "P")
 
     @staticmethod
     def queen_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
-        directions: list[Direction] = PARALLEL_DIRECTIONS + DIAGONAL_DIRECTIONS
-        yield from chain.from_iterable(
-            PieceMovement._slide_moves(board, location, color, d) for d in directions
-        )
+        yield from PieceMovement._slide_moves(board, location, color, "C")
 
     @staticmethod
     def king_moves(board: Board, location: Location, color: Color) -> Generator[Move, None, None]:
@@ -120,25 +114,11 @@ class PieceMovement:
 
     @staticmethod
     def _slide_moves(
-        board: Board, location: Location, color: Color, direction: Direction
+        board: Board, location: Location, color: Color, types: str
     ) -> Generator[Move, None, None]:
-        # TODO: Find a way to yield CAPTURE moves first. (Optimization)
-        step = 1
-        moves = []
-        while Board.is_in_bounds(destination := location+(direction*step)):
-            dest_square = board.board[destination[0], destination[1]]
-            if not dest_square[3]:  # Is not occupied
-                moves.append(Move(location, destination))
-                step += 1
-            elif dest_square[0] != color:  # Enemy
-                moves.append(Move(
-                    location, destination, CAPTURE,
-                    target=dest_square[1]
-                ))
-                break
-            else:  # Friendly
-                break
-        yield from capture_moves_first(moves)
+        captures, slides = apply_mask(board, location, types)
+        yield from (Move(location, Location(*end), CAPTURE, target=PieceType(board[end[0], end[1], 1])) for end in captures)
+        yield from (Move(location, Location(*end), MoveType.PASSING) for end in slides)
 
 
 PIECE_LOGIC_MAP: Dict[
@@ -151,6 +131,3 @@ PIECE_LOGIC_MAP: Dict[
     QUEEN: PieceMovement.queen_moves,
     KING: PieceMovement.king_moves
 }
-
-def capture_moves_first(moves: list[Move]) -> list[Move]:
-    return [m for m in moves if CAPTURE in m.type] + [m for m in moves if CAPTURE not in m.type]
