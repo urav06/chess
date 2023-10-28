@@ -16,11 +16,11 @@ COMBINED_MAP = PARALLEL_MAP | DIAGONAL_MAP
 def get_mask(l: tuple[int, int], map: str) -> npt.NDArray[np.bool_]:
     if map.upper()[0] == "P":
         mask = PARALLEL_MAP[7-l[0]:15-l[0], 7-l[1]:15-l[1]]
-    if map.upper()[0] == "D":
+    elif map.upper()[0] == "D":
         mask = DIAGONAL_MAP[7-l[0]:15-l[0], 7-l[1]:15-l[1]]
-    if map.upper()[0] == "C":
+    elif map.upper()[0] == "C":
         mask = COMBINED_MAP[7-l[0]:15-l[0], 7-l[1]:15-l[1]]
-    return mask
+    return np.array(mask, copy=True)
 
 def apply_mask(board: Board, loc: tuple[int, int], map: str) -> npt.NDArray[np.int8]:
     mask = get_mask(loc, map)
@@ -33,16 +33,20 @@ def apply_mask(board: Board, loc: tuple[int, int], map: str) -> npt.NDArray[np.i
     closest_bumps = {}
     for bump in bumps:
         slope = ((bump[0] - loc[0])//max(abs(bump[0] - loc[0]), 1), (bump[1] - loc[1])//max(abs(bump[1] - loc[1]), 1))
-        if ((old_bump := closest_bumps.get(slope)) is None) or abs(bump[0] - loc[0]) < abs(old_bump[0] - loc[0]):
+        if (
+            ((old_bump := closest_bumps.get(slope)) is None)
+            or abs(bump[0] - loc[0]) < abs(old_bump[0] - loc[0])
+            or abs(bump[1] - loc[1]) < abs(old_bump[1] - loc[1])
+        ):
             closest_bumps[slope] = bump
 
-    shadow_mask = np.ones((8,8), dtype=bool)
     for vector, start in closest_bumps.items():
         x = (start[0]+vector[0], start[1]+vector[1])
         while 0 <= x[0] < 8 and 0 <= x[1] < 8:
-            shadow_mask[x] = 0
+            mask[x] = 0
+            bump_mask[x] = 0
             x = (x[0]+vector[0], x[1]+vector[1])
 
-    slide = mask & (~bump_mask) & (shadow_mask)
-    hit = bump_mask & (board.board[:, :, 0] == opponent_color) & (shadow_mask)
+    slide = mask & (~bump_mask)
+    hit = bump_mask & (board.board[:, :, 0] == opponent_color)
     return np.argwhere(hit), np.argwhere(slide)
