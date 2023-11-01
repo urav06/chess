@@ -1,3 +1,8 @@
-from bots.random.bot import RandomBot
+"""
+This package contains the bots for the game.
+"""
 
-__all__ = ["RandomBot"]
+from bots.random.bot import RandomBot
+from bots.min_max.bot import MinMaxBot
+
+__all__ = ["RandomBot", "MinMaxBot"]

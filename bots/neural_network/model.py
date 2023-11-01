@@ -6,8 +6,9 @@ from collections.abc import Callable
 import numpy as np
 import numpy.typing as npt
 
-activation_fx_type = Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]]
+ActivationFunction = Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]]
 
+#TODO: Move these functions to a common package
 
 def sigmoid(x: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     return 1 / (1 + np.exp(-x))
@@ -30,8 +31,8 @@ class Network:
     def __init__(
         self,
         layers: list[int],
-        activation_fx: activation_fx_type,
-        activation_fx_derivative: activation_fx_type
+        activation_fx: ActivationFunction,
+        activation_fx_derivative: ActivationFunction
     ) -> None:
 
         self.layers = layers
@@ -49,13 +50,13 @@ class Network:
 
     def backprop(
         self,
-        input: npt.NDArray[np.float64],  # Input vector
+        inp: npt.NDArray[np.float64],  # Input vector
         adjustments: npt.NDArray[np.float64],  # Adjustment vector
         eta: float  # Learning rate
     ) -> None:
         delta = -adjustments
-        activation = input
-        activations = [input]
+        activation = inp
+        activations = [inp]
         zs = []
         for bias, weight in zip(self.biases, self.weights):
             z = np.dot(weight, activation) + bias
@@ -72,7 +73,9 @@ class Network:
             afxd = self.activation_fx_derivative(z)
             delta = np.dot(self.weights[-layer+1].transpose(), delta) * afxd
             self.biases[-layer] = self.biases[-layer] - eta*delta
-            self.weights[-layer] = self.weights[-layer] - eta*np.dot(delta, activations[-layer-1].transpose())
+            self.weights[-layer] = (
+                self.weights[-layer] - eta*np.dot(delta, activations[-layer-1].transpose())
+            )
 
     def save(self, file: str) -> None:
         data = np.array(

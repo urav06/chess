@@ -30,7 +30,6 @@ def random_game() -> bool:
             return "Stalemate"
         move: Move = random.choice(moves)
         game.execute_move(move)
-        game.active_color = ~game.active_color
     return f"Exhausted {PER_GAME_MOVE_LIMIT} Moves"
 
 
