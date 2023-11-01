@@ -1,3 +1,4 @@
-from bots.min_max_pro.search_and_eval import SearchTree
 
-__all__ = ["SearchTree"]
+from bots.min_max_pro.min_max_new import MinMaxProBot
+
+__all__ = ["MinMaxProBot"]

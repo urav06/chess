@@ -3,37 +3,49 @@ Entrypoint for manual tests
 """
 import time
 
-from bots import MinMaxBot, RandomBot
-from engine import Color, Game, from_fen
+from bots import MinMaxBot, RandomBot, MinMaxProBot
+from engine import Color, Game, from_fen, to_fen
 
 
 def main():
-
     players = (
-        MinMaxBot(max_depth=7, color=Color.BLACK),
-        RandomBot(color=Color.WHITE)
+        # MinMaxBot(max_depth=7, color=Color.BLACK),
+        MinMaxProBot(max_depth=4, color=Color.WHITE),
+        RandomBot(color=Color.BLACK)
+        #MinMaxBot(max_depth=4, color=Color.BLACK),
     )
 
     game = Game()
     from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", game)
+    # from_fen('rn1qkbnr/pb1ppppp/2p5/1p6/P4P2/2P5/1P1PP1PP/RNBQKBNR', game)
+    # from_fen('rn1qkbnr/pb1ppppp/2p5/8/p4P2/2P5/1P1PP1PP/RNBQKBNR', game)
 
     while next(game.legal_moves(), False):
-        active_player = players[0] if game.active_color == players[0].color else players[1]
+        active_player = (
+            players[0] if game.active_color == players[0].color else players[1]
+        )
         st = time.time()
         selected_move = active_player.select_move(game)
         et = time.time()
         active_player.move_count += 1
-        active_player.clock += et-st
+        print("Move count is", active_player.move_count)
+        active_player.clock += et - st
         game.execute_move(selected_move)
         print(f"{active_player.name} played {selected_move}")
         print(game.board)
 
-    inactive_player = players[1] if game.active_color == players[0].color else players[0]
+    inactive_player = (
+        players[1] if game.active_color == players[0].color else players[0]
+    )
     if game.is_in_checkmate(game.active_color):
-        print(f"{inactive_player.name} wins by checkmate in {inactive_player.move_count} moves.")
+        print(
+            f"{inactive_player.name} wins by checkmate in {inactive_player.move_count} moves."
+        )
 
     elif game.is_in_stalemate(game.active_color):
-        print(f"{inactive_player.name} draws by stalemate in {inactive_player.move_count} moves.")
+        print(
+            f"{inactive_player.name} draws by stalemate in {inactive_player.move_count} moves."
+        )
     else:
         print("Something fucky happened.")
 
