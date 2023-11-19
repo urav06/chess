@@ -52,10 +52,17 @@ class MinMaxProBot(BaseBot):
             score = self.evaluation_by_heuristics(game)
             return final_move, score
 
+        if game.is_in_checkmate(self.color):
+            print("A")
+            return None, float('-inf')
+        if game.is_in_checkmate(~self.color):
+            print("B")
+            return None, float('inf') - 1 
+
         all_legal_moves = list(game.legal_moves(color=game.active_color))
+
         final_move = all_legal_moves[0]
 
-        print("Length of legal moves are", len(all_legal_moves))
         for current_move in all_legal_moves:
 
             if score not in (float('inf'), float('-inf')):
@@ -68,20 +75,15 @@ class MinMaxProBot(BaseBot):
                 elif not my_turn and score <= self.alpha:
                     break
 
-            if game.is_in_checkmate(self.color):
-                print("A")
-                return None, float('-inf')
-            if game.is_in_checkmate(~self.color):
-                print("B")
-                return current_move, float('inf')
-
             _, child_score = self.evaluate(
                 game=game.seek_move(current_move),
                 depth=depth-1
                 )
+            if child_score == float("inf")-1:
+                final_move = current_move
 
-            if depth == self.max_depth:
-                print("Turn is", my_turn)
+            # if depth == self.max_depth:
+                # print("Turn is", my_turn)
             if my_turn and depth == self.max_depth:
                 score = min(score, child_score)
                 if score == child_score:

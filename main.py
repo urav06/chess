@@ -10,13 +10,16 @@ from engine import Color, Game, from_fen, to_fen
 def main():
     players = (
         MinMaxBot(max_depth=3, color=Color.BLACK),
-        MinMaxBot(max_depth=6, color=Color.WHITE),
+        # MinMaxBot(max_depth=6, color=Color.WHITE),
         # RandomBot(color=Color.BLACK)
-        # MinMaxBot(max_depth=4, color=Color.WHITE),
+        MinMaxProBot(max_depth=2, color=Color.WHITE),
     )
 
     game = Game()
-    from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", game)
+    # from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", game)
+    from_fen('1n1qkbn1/r2pp1p1/b7/ppp5/4QP2/2P2Kp1/1P1P2B1/r7', game)
+    # from_fen('rn1qkbnr/pb1ppppp/2p5/8/p4P2/2P5/1P1PP1PP/RNBQKBNR', game)
+    # print("Game Started here is", game.board)
     while next(game.legal_moves(), False):
         active_player = (
             players[0] if game.active_color == players[0].color else players[1]
