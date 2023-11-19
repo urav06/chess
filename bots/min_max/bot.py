@@ -1,12 +1,11 @@
 """
 Minmax bot.
 """
-
+import random
 from typing import Optional
 
 from bots.basebot import BaseBot
-from bots.neural_network.model import sigmoid
-from engine import Color, Game, Move
+from engine import Color, Game, Move, PieceType
 
 
 class MinMaxBot(BaseBot):
@@ -19,25 +18,41 @@ class MinMaxBot(BaseBot):
     def select_move(self, game: Game) -> Optional[Move]:
         super().select_move(game)
         moves = game.legal_moves(color=self.color)
-        best_move = None
+        scored_moves: list[tuple[Move, float]]  = []
         best_score = float("-inf")
         for move in moves:
             score = self.evaluate(
                 game.seek_move(move), depth=self.max_depth, a=float("-inf"), b=float("inf")
             )
+            scored_moves.append((move, score))
             if score > best_score:
-                best_move = move
                 best_score = score
-        return best_move
+        return random.choice([move for move, score in scored_moves if score == best_score])
 
     def leaf_node_heuristics(self, game: Game) -> float:
+
+        piece_weights: dict[PieceType, float] = {
+            PieceType.PAWN: 1,
+            PieceType.KNIGHT: 3,
+            PieceType.BISHOP: 3,
+            PieceType.ROOK: 5,
+            PieceType.QUEEN: 9,
+            PieceType.KING: 100
+        }
+
         my_pieces = game.board.get_pieces(color=self.color)
         opponent_pieces = game.board.get_pieces(color=~self.color)
 
-        advantage = (len(my_pieces) - len(opponent_pieces))/(len(my_pieces) + len(opponent_pieces))
-
-        multiplier = 7
-        return (sigmoid(multiplier * advantage) - 0.5) * 20
+        advantage = (
+            (
+                sum(map(lambda x: piece_weights[x[0].type], my_pieces))
+                - sum(map(lambda x: piece_weights[x[0].type], opponent_pieces))
+            ) / (
+                sum(map(lambda x: piece_weights[x[0].type], my_pieces))
+                + sum(map(lambda x: piece_weights[x[0].type], opponent_pieces))
+            )
+        )
+        return advantage * 20
 
     def evaluate(self, game: Game, depth: int, a: int, b: int) -> float:
 
