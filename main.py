@@ -9,17 +9,14 @@ from engine import Color, Game, from_fen, to_fen
 
 def main():
     players = (
-        # MinMaxBot(max_depth=7, color=Color.BLACK),
-        MinMaxProBot(max_depth=4, color=Color.WHITE),
-        RandomBot(color=Color.BLACK)
-        #MinMaxBot(max_depth=4, color=Color.BLACK),
+        MinMaxBot(max_depth=3, color=Color.BLACK),
+        MinMaxBot(max_depth=6, color=Color.WHITE),
+        # RandomBot(color=Color.BLACK)
+        # MinMaxBot(max_depth=4, color=Color.WHITE),
     )
 
     game = Game()
     from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", game)
-    # from_fen('rn1qkbnr/pb1ppppp/2p5/1p6/P4P2/2P5/1P1PP1PP/RNBQKBNR', game)
-    # from_fen('rn1qkbnr/pb1ppppp/2p5/8/p4P2/2P5/1P1PP1PP/RNBQKBNR', game)
-
     while next(game.legal_moves(), False):
         active_player = (
             players[0] if game.active_color == players[0].color else players[1]
@@ -28,7 +25,6 @@ def main():
         selected_move = active_player.select_move(game)
         et = time.time()
         active_player.move_count += 1
-        print("Move count is", active_player.move_count)
         active_player.clock += et - st
         game.execute_move(selected_move)
         print(f"{active_player.name} played {selected_move}")

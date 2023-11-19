@@ -1,7 +1,7 @@
 
 from bots.neural_network.model import sigmoid
 from bots.basebot import BaseBot
-from engine import Color, Game, Move
+from engine import Color, Game, Move, PieceType
 
 
 class MinMaxProBot(BaseBot):
@@ -11,6 +11,14 @@ class MinMaxProBot(BaseBot):
         self.alpha = float('-inf')
         self.beta = float('inf')
         self.max_depth = max_depth
+        self.WEIGHT = {
+            PieceType.KING: 100,
+            PieceType.QUEEN: 9,
+            PieceType.ROOK: 5,
+            PieceType.BISHOP: 3,
+            PieceType.KNIGHT: 3,
+            PieceType.PAWN: 1
+        }
 
     def select_move(self, game: Game) -> Move | None:
         super().select_move(game)
@@ -23,8 +31,10 @@ class MinMaxProBot(BaseBot):
 
     def evaluation_by_heuristics(self, game: Game):
 
-        param_a = len(game.board.get_pieces(color=Color.WHITE))
-        param_b = len(game.board.get_pieces(color=Color.BLACK))
+        board_a = game.board.get_pieces(color=self.color)
+        board_b = game.board.get_pieces(color=~self.color)
+        param_a = sum(self.WEIGHT[piece.type] for piece, location in board_a)
+        param_b = sum(self.WEIGHT[piece.type] for piece, location in board_b)
         return (
             sigmoid(
                 (param_a - param_b) * (32/(param_a + param_b))
@@ -33,40 +43,56 @@ class MinMaxProBot(BaseBot):
         ) * 10
 
     def evaluate(self, game: Game, depth: int):
-        if depth == 0:
-            score = self.evaluation_by_heuristics(game)
-            my_turn = (game.active_color == self.color) 
-            return None, score  
 
         my_turn = (game.active_color == self.color)
         score = float('-inf') if my_turn else float('inf')
-        all_legal_moves = list(game.legal_moves(color=game.active_color))
         final_move = None
 
-        for i, current_move in enumerate(all_legal_moves):
-            if score in (float('inf'), float('-inf')):
-                pass
-            else:
-                if my_turn:
-                    if depth != self.max_depth and score <= self.beta:
-                        break
-                else:
-                    if score <= self.alpha:
-                        break 
+        if depth == 0:
+            score = self.evaluation_by_heuristics(game)
+            return final_move, score
+
+        all_legal_moves = list(game.legal_moves(color=game.active_color))
+        final_move = all_legal_moves[0]
+
+        print("Length of legal moves are", len(all_legal_moves))
+        for current_move in all_legal_moves:
+
+            if score not in (float('inf'), float('-inf')):
+                if (
+                    my_turn
+                    and depth != self.max_depth
+                    and score <= self.beta
+                ):
+                    break
+                elif not my_turn and score <= self.alpha:
+                    break
+
+            if game.is_in_checkmate(self.color):
+                print("A")
+                return None, float('-inf')
+            if game.is_in_checkmate(~self.color):
+                print("B")
+                return current_move, float('inf')
 
             _, child_score = self.evaluate(
                 game=game.seek_move(current_move),
                 depth=depth-1
                 )
-            if my_turn and score < child_score:
-                score = child_score
-                final_move = current_move
-            elif not my_turn and score > child_score:
-                score = child_score
 
-        if not my_turn and score > self.alpha: 
-            self.alpha = score
-        if my_turn and score < self.beta: 
-            self.beta = score 
+            if depth == self.max_depth:
+                print("Turn is", my_turn)
+            if my_turn and depth == self.max_depth:
+                score = min(score, child_score)
+                if score == child_score:
+                    final_move = current_move
+                continue
+
+            score = max(score, child_score)
+
+        if my_turn:
+            self.beta = min(score, self.beta)
+        else:
+            self.alpha = max(score, self.alpha)
 
         return final_move, score
