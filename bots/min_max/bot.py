@@ -5,7 +5,7 @@ import random
 from typing import Optional
 
 from bots.basebot import BaseBot
-from engine import Color, Game, Move, PieceType
+from engine import Color, Game, Move, PieceType, MoveType
 
 
 class MinMaxBot(BaseBot):
@@ -65,7 +65,18 @@ class MinMaxBot(BaseBot):
             return self.leaf_node_heuristics(game)
 
         scores = []
-        for move in game.legal_moves(color=game.active_color):
+        priorities = {
+            MoveType.CAPTURE_AND_PROMOTION: 0,
+            MoveType.PROMOTION: 1,
+            MoveType.CAPTURE: 2,
+            MoveType.CASTLE: 3,
+            MoveType.PASSING: 4
+        }
+        for move in sorted(
+            game.legal_moves(color=game.active_color),
+            key=(lambda x: priorities[x.type]),
+            reverse=True
+        ):
             score = self.evaluate(game.seek_move(move), depth-1, a, b)
             scores.append(score)
 
@@ -75,7 +86,7 @@ class MinMaxBot(BaseBot):
             else:
                 b = min(b, score)
 
-            if a - b < 0:
+            if b <= a + 0.1:
                 break
 
         return max(scores) if its_my_turn else min(scores)
