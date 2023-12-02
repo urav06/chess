@@ -1,13 +1,16 @@
 """
 Utils to load and save FEN strings
 """
-from engine.board import Board
+from typing import TYPE_CHECKING
+
 from engine.constants import BOARD_SIZE, FEN_MAPPING, INV_FEN_MAPPING
-from engine.game import Game
-from engine.types import Color, Piece, BLACK, WHITE
+from engine.types import BLACK, WHITE, Color, Piece
+
+if TYPE_CHECKING:
+    from engine.game import Game 
 
 
-def from_fen(fen_string: str, game: Game) -> None:
+def from_fen(fen_string: str, game: 'Game') -> None:
     fen_data: list[str] = fen_string.strip().split(sep=" ")
 
     if len(fen_data) == 1:
@@ -32,13 +35,13 @@ def from_fen(fen_string: str, game: Game) -> None:
                 game.board.place_piece((i, j), piece)
 
 
-def to_fen(board: Board) -> str:
+def to_fen(game: 'Game') -> str:
     placement_string = ""
-    for i, rank in enumerate(board.board):
+    for i, rank in enumerate(game.board.board):
         empty_counter = 0
         for j in range(len(rank)):
-            if board.board[i, j, 3]:
-                piece: Piece = board.get_piece((i, j))
+            if game.board.board[i, j, 3]:
+                piece: Piece = game.board.get_piece((i, j))
                 square_data = INV_FEN_MAPPING[piece]
                 if empty_counter != 0:
                     placement_string += f"{empty_counter}"
@@ -53,4 +56,4 @@ def to_fen(board: Board) -> str:
             placement_string += f"{empty_counter}"
         placement_string += "/"
     placement_string = placement_string.strip("/")
-    return placement_string
+    return f"{placement_string} {str(game.active_color).lower()[0]}"

@@ -6,18 +6,19 @@ from __future__ import annotations
 from functools import partial
 from itertools import chain
 from typing import Generator, Optional
+from urllib.parse import urlencode, urljoin
 
 import numpy as np
 
 from engine.board import Board, PieceLocation
 from engine.constants import BOARD_SIZE
+from engine.fen_utils import to_fen
 from engine.pieces import PIECE_LOGIC_MAP
 from engine.types import (
-    Color, Direction, Location, Move, MoveType,
-    CAPTURE,  # MoveTypes
-    KING, ROOK, QUEEN,  # PieceTypes
-    WHITE,  # Colors
+    CAPTURE, KING, QUEEN, ROOK, WHITE,
+    Color, Direction, Location, Move, MoveType
 )
+
 
 class Game:
     """
@@ -143,3 +144,7 @@ class Game:
 
     def is_move_safe(self, color: Color, move: Move) -> bool:
         return not self.seek_move(move).is_in_check(color=color)
+
+    @property
+    def lichess(self) -> str:
+        return f"{urljoin('https://lichess.org', 'analysis')}?{urlencode({'fen': to_fen(self)})}"
