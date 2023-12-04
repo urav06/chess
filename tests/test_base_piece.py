@@ -60,3 +60,17 @@ class BaseTestPiece(unittest.TestCase):
             )
             for dest in end
         }
+
+    def promote_moves(
+            self,
+            start: tuple[int, int],
+            end: list[tuple[PieceType, tuple[int, int]]],
+            **kwds: Any,
+            ) -> set[PieceType, Move]:
+
+        return {
+              (
+                PieceType(piece), self.moves(start, end_loc, kwds)
+               )
+              for piece, end_loc in end
+          }
