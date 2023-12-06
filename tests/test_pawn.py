@@ -3,7 +3,7 @@ import unittest
 from tests.test_base_piece import BaseTestPiece
 from engine.types import (
     Location,
-    PAWN, KING, ROOK, # PieceTypes
+    PAWN, KING, ROOK,  # PieceTypes
     WHITE, BLACK,   # Colors
     CAPTURE,  # MoveTypes
 )
@@ -11,8 +11,8 @@ from engine.types import (
 
 class TestPawn(BaseTestPiece):
 
-    def setUp(self) -> None:
-        super().setUp()
+    def setUp(self)->None:
+        return super().setUp()
 
     def test_base_case_black(self) -> None:
         self.start_loc = Location(1, 6)
@@ -24,7 +24,7 @@ class TestPawn(BaseTestPiece):
              (3, 6)
             ]
             )
-        self.assert_generated_moves(
+        return self.assert_generated_moves(
             expected=expected,
             piece=self.piece_info
             )
@@ -39,7 +39,7 @@ class TestPawn(BaseTestPiece):
              (4, 6)
             ]
             )
-        self.assert_generated_moves(
+        return self.assert_generated_moves(
             expected=expected,
             piece=self.piece_info
             )
@@ -56,13 +56,13 @@ class TestPawn(BaseTestPiece):
             ]
             )
         expected_capture = self.moves(
-            [1, 6],
+            (1, 6),
             [(2, 5)],
             move_type=CAPTURE,
             target=PAWN,
         )
         expected = expected_passing | expected_capture
-        self.assert_generated_moves(
+        return self.assert_generated_moves(
             expected=expected,
             piece=self.piece_info
             )
@@ -76,12 +76,12 @@ class TestPawn(BaseTestPiece):
             [
             ]
             )
-        self.assert_generated_moves(
+        return self.assert_generated_moves(
             expected=expected,
             piece=self.piece_info
             )
 
-    def test_case_promote_black(self):
+    def test_case_promote_black(self) -> bool:
         self.start_loc = Location(1, 6)
         self.piece_info = self.game.board.place_piece(Location(1, 6), (BLACK, PAWN))
         legal_moves = self.game.legal_moves(
@@ -90,16 +90,16 @@ class TestPawn(BaseTestPiece):
             )
         return True
 
-    def test_case_pinned_case_black(self):
+    def test_case_pinned_case_black(self) -> None:
         self.start_loc = Location(1, 6)
         self.game.board.place_piece(Location(3, 6), (BLACK, KING))
         black_pawn = self.game.board.place_piece(Location(2, 6), (BLACK, PAWN))
-        white_rook = self.game.board.place_piece(Location(1, 6), (WHITE, ROOK))
+        self.game.board.place_piece(Location(1, 6), (WHITE, ROOK))
         expected = self.moves(
-            [2,6],
+            (2, 6),
             []
             )
-        self.assert_generated_moves(
+        return self.assert_generated_moves(
             expected=expected,
             piece=black_pawn,
         )

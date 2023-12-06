@@ -7,7 +7,7 @@ import unittest
 
 from engine import Game
 from engine.types import (
-    Move, PieceType, Color, Location,
+    Move, PieceType, Location, Piece,
     BLACK, WHITE,  # Colors
     KING,  # PieceTypes
     PASSING,
@@ -30,16 +30,18 @@ class BaseTestPiece(unittest.TestCase):
     def assert_generated_moves(
         self, expected: set[Move],
         calculated: Optional[Generator[Move, None, None]] = None,
-        piece: Optional[tuple[tuple[Color, PieceType], tuple[int, int]]] = None
+        piece: Optional[tuple[Piece, Location]] = None
     ) -> None:
-        if piece:
-            calculated = set(calculated or self.game.legal_moves(color=piece[0][0], piece=piece))
         if calculated:
+            calculated_set = set(calculated)
+        if piece:
+            calculated_set = set(calculated or self.game.legal_moves(color=piece[0][0], piece=piece))
+        if calculated_set:
             self.assertSetEqual(
-                expected, calculated,
-                msg=f"\nGenerated: {len(calculated)} Moves"
-                    f"\nMissing {len(expected - calculated)} Moves"
-                    f"\nExtra {len(calculated - expected)} Moves"
+                expected, calculated_set,
+                msg=f"\nGenerated: {len(calculated_set)} Moves"
+                    f"\nMissing {len(expected - calculated_set)} Moves"
+                    f"\nExtra {len(calculated_set - expected)} Moves"
             )
         if not piece and not calculated:
             raise ValueError("Must provide either piece or calculated.")
@@ -60,17 +62,3 @@ class BaseTestPiece(unittest.TestCase):
             )
             for dest in end
         }
-
-    def promote_moves(
-            self,
-            start: tuple[int, int],
-            end: list[tuple[PieceType, tuple[int, int]]],
-            **kwds: Any,
-            ) -> set[PieceType, Move]:
-
-        return {
-              (
-                PieceType(piece), self.moves(start, end_loc, kwds)
-               )
-              for piece, end_loc in end
-          }
