@@ -1,18 +1,21 @@
+"""
+Default Module Doc
+"""
 import unittest
+from typing import Optional
 
+from engine.types import CAPTURE  # MoveTypes
+from engine.types import (BLACK, KING, PAWN, ROOK, WHITE,  # PieceTypes; Colors
+                          Location, Piece)
 from tests.test_base_piece import BaseTestPiece
-from engine.types import (
-    Location,
-    PAWN, KING, ROOK,  # PieceTypes
-    WHITE, BLACK,   # Colors
-    CAPTURE,  # MoveTypes
-)
 
 
 class TestPawn(BaseTestPiece):
 
-    def setUp(self)->None:
-        return super().setUp()
+    def setUp(self) -> None:
+        super().setUp()
+        self.piece_info: Optional[tuple[Piece, Location]] = None
+        self.start_loc: Optional[Location] = None
 
     def test_base_case_black(self) -> None:
         self.start_loc = Location(1, 6)
@@ -84,10 +87,10 @@ class TestPawn(BaseTestPiece):
     def test_case_promote_black(self) -> bool:
         self.start_loc = Location(1, 6)
         self.piece_info = self.game.board.place_piece(Location(1, 6), (BLACK, PAWN))
-        legal_moves = self.game.legal_moves(
-            color=BLACK,
-            piece=self.piece_info
-            )
+        # legal_moves = self.game.legal_moves(
+        #     color=BLACK,
+        #     piece=self.piece_info
+        #    )
         return True
 
     def test_case_pinned_case_black(self) -> None:

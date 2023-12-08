@@ -3,13 +3,10 @@ Unittests for knight movement logic
 """
 import unittest
 
+from engine.types import CAPTURE  # MoveTypes
+from engine.types import (BLACK, KNIGHT, ROOK,  # Piece; PieceTypes; Colors
+                          WHITE, Location, Piece)
 from tests.test_base_piece import BaseTestPiece
-from engine.types import (
-    Piece, Location,  # Piece
-    KNIGHT, ROOK,  # PieceTypes
-    WHITE, BLACK,  # Colors
-    CAPTURE  # MoveTypes
-)
 
 
 class TestKnight(BaseTestPiece):

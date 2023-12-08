@@ -1,17 +1,12 @@
 """
 Base test case for all pieces.
 """
-from typing import Generator, Optional, Any
-
 import unittest
+from typing import Any, Generator, Optional
 
 from engine import Game
-from engine.types import (
-    Move, PieceType, Location, Piece,
-    BLACK, WHITE,  # Colors
-    KING,  # PieceTypes
-    PASSING,
-)
+from engine.types import KING  # PieceTypes
+from engine.types import BLACK, PASSING, WHITE, Location, Move, Piece  # Colors
 
 
 class BaseTestPiece(unittest.TestCase):
@@ -35,7 +30,10 @@ class BaseTestPiece(unittest.TestCase):
         if calculated:
             calculated_set = set(calculated)
         if piece:
-            calculated_set = set(calculated or self.game.legal_moves(color=piece[0][0], piece=piece))
+            calculated_set = set(calculated
+                                 or
+                                 self.game.legal_moves(color=piece[0][0], piece=piece)
+                                 )
         if calculated_set:
             self.assertSetEqual(
                 expected, calculated_set,
