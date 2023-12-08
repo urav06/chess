@@ -4,13 +4,10 @@ Test the sliding pieces (Bishop, Rook, Queen) for legal moves.
 
 import unittest
 
+from engine.types import CAPTURE  # MoveTypes
+from engine.types import (BISHOP, BLACK, ROOK, WHITE,  # PieceTypes; Colors
+                          Location)
 from tests.test_base_piece import BaseTestPiece
-from engine.types import (
-    Location,
-    BISHOP, ROOK,  # PieceTypes
-    WHITE, BLACK,   # Colors
-    CAPTURE,  # MoveTypes
-)
 
 
 class TestBishop(BaseTestPiece):

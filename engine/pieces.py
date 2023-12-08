@@ -15,6 +15,7 @@ from engine.types import (
     WHITE,  # Colors
 )
 
+
 class PieceMovement:
 
     @staticmethod
