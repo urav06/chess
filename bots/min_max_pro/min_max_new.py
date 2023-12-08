@@ -1,4 +1,6 @@
-
+"""
+MinMax Pro Bot Main File
+"""
 from bots.neural_network.model import sigmoid
 from bots.basebot import BaseBot
 from engine import Color, Game, Move, PieceType
@@ -11,7 +13,7 @@ class MinMaxProBot(BaseBot):
         self.alpha = float('-inf')
         self.beta = float('inf')
         self.max_depth = max_depth
-        self.WEIGHT = {
+        self.weight = {
             PieceType.KING: 100,
             PieceType.QUEEN: 9,
             PieceType.ROOK: 5,
@@ -33,8 +35,8 @@ class MinMaxProBot(BaseBot):
 
         board_a = game.board.get_pieces(color=self.color)
         board_b = game.board.get_pieces(color=~self.color)
-        param_a = sum(self.WEIGHT[piece.type] for piece, location in board_a)
-        param_b = sum(self.WEIGHT[piece.type] for piece, location in board_b)
+        param_a = sum(self.weight[piece.type] for piece, location in board_a)
+        param_b = sum(self.weight[piece.type] for piece, location in board_b)
         return (
             sigmoid(
                 (param_a - param_b) * (32/(param_a + param_b))
@@ -44,7 +46,7 @@ class MinMaxProBot(BaseBot):
 
     def evaluate(self, game: Game, depth: int):
 
-        my_turn = (game.active_color == self.color)
+        my_turn = game.active_color == self.color
         score = float('-inf') if my_turn else float('inf')
         final_move = None
 
@@ -65,7 +67,7 @@ class MinMaxProBot(BaseBot):
                     and score <= self.beta
                 ):
                     break
-                elif not my_turn and score <= self.alpha:
+                if not my_turn and score <= self.alpha:
                     break
 
             if game.is_in_checkmate(self.color):
