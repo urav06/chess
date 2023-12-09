@@ -24,6 +24,7 @@ class BaseBot(ABC):
         """
         if game.active_color != self.color:
             raise RuntimeError(f"It's not my turn yet. I'm playing as {str(self.color).lower()}.")
+        return None
 
     def display_time_taken(self) -> None:
         print(f"{self.name} took {round(self.clock, 5)}s.")
