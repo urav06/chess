@@ -3,11 +3,11 @@ Entrypoint for manual tests
 """
 import time
 
-from bots import MinMaxBot, RandomBot, MinMaxProBot
-from engine import Color, Game, from_fen, to_fen
+from bots import MinMaxBot
+from engine import Color, Game, from_fen
 
 
-def main():
+def main() -> None:
     players = (
         MinMaxBot(max_depth=3, color=Color.BLACK),
         MinMaxBot(max_depth=6, color=Color.WHITE),

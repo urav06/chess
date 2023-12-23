@@ -7,7 +7,7 @@ from engine.constants import BOARD_SIZE, FEN_MAPPING, INV_FEN_MAPPING
 from engine.types import BLACK, WHITE, Color, Piece
 
 if TYPE_CHECKING:
-    from engine.game import Game 
+    from engine.game import Game
 
 
 def from_fen(fen_string: str, game: 'Game') -> None:

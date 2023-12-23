@@ -54,7 +54,7 @@ class MinMaxBot(BaseBot):
         )
         return advantage * 20
 
-    def evaluate(self, game: Game, depth: int, a: int, b: int) -> float:
+    def evaluate(self, game: Game, depth: int, a: float, b: float) -> float:
 
         its_my_turn = game.active_color == self.color
 
