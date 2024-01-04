@@ -4,14 +4,14 @@ Entrypoint for manual tests using the external chess library
 import time
 
 import chess
-from bots import MinMaxBot, RandomBot
+from bots import MinMaxBot, RandomBot,MinMaxProBot
 
 
 def main() -> None:
     board = chess.Board()
     players = (
         MinMaxBot(max_depth=3, color=chess.BLACK, name="phunsukh-wangdu"),
-        RandomBot(color=chess.WHITE, name="ranchoddas-chanchad")
+        MinMaxProBot(max_depth=3, color=chess.WHITE, name="yash-baheti")
     )
     while not board.is_game_over():
         active_player = players[0] if board.turn == players[0].color else players[1]

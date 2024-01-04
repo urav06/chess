@@ -9,8 +9,9 @@ from bots.basebot import BaseBot
 
 
 class MinMaxBot(BaseBot):
-
-    def __init__(self, color: chess.Color, max_depth: int, name: Optional[str] = None) -> None:
+    def __init__(
+        self, color: chess.Color, max_depth: int, name: Optional[str] = None
+    ) -> None:
         super().__init__(color)
         self.max_depth = max_depth
         self.name = name or f"{self.name}_d{max_depth}"
@@ -20,7 +21,9 @@ class MinMaxBot(BaseBot):
         scored_moves: list[tuple[chess.Move, float]] = []
         best_score = float("-inf")
         for move in moves:
-            score = self.evaluate(self.seek(board, move), self.max_depth, float("-inf"), float("inf"))
+            score = self.evaluate(
+                self.seek(board, move), self.max_depth, float("-inf"), float("inf")
+            )
             scored_moves.append((move, score))
             best_score = max(best_score, score)
         if len(scored_moves) == 0:
@@ -28,10 +31,9 @@ class MinMaxBot(BaseBot):
         return random.choice([m for m, s in scored_moves if s == best_score])
 
     def evaluate(self, board: chess.Board, depth: int, a: float, b: float) -> float:
-
         its_my_turn = board.turn is self.color
 
-        if (outcome := board.outcome()):
+        if outcome := board.outcome():
             if outcome.winner is None:
                 return self.leaf_node_heuristics(board)
             elif outcome.winner is self.color:
@@ -39,19 +41,21 @@ class MinMaxBot(BaseBot):
             elif outcome.winner is (not self.color):
                 return float("-inf")
             else:
-                raise ValueError(f"Unexpected outcome.winner value: {outcome.winner} for outcome {outcome}")
+                raise ValueError(
+                    f"Unexpected outcome.winner value: {outcome.winner} for outcome {outcome}"
+                )
 
         if depth == 0:
             return self.leaf_node_heuristics(board)
 
         scores = []
         for move in board.legal_moves:
-            score = self.evaluate(self.seek(board, move), depth-1, a, b)
+            score = self.evaluate(self.seek(board, move), depth - 1, a, b)
             scores.append(score)
 
             if its_my_turn:
                 a = max(a, score)
-            
+
             else:
                 b = min(b, score)
 
@@ -60,7 +64,6 @@ class MinMaxBot(BaseBot):
 
         return a if its_my_turn else b
 
-
     def leaf_node_heuristics(self, board: chess.Board) -> float:
         weights: dict[chess.PieceType, float] = {
             chess.PAWN: 1,
@@ -68,17 +71,21 @@ class MinMaxBot(BaseBot):
             chess.BISHOP: 3,
             chess.ROOK: 5,
             chess.QUEEN: 9,
-            chess.KING: 10
+            chess.KING: 10,
         }
 
         my_piece_score = sum(
-            len(board.pieces(p, self.color))*weights[p] for p in chess.PIECE_TYPES
+            len(board.pieces(p, self.color)) * weights[p] for p in chess.PIECE_TYPES
         )
         opponent_piece_score = sum(
-            len(board.pieces(p, not self.color))*weights[p] for p in chess.PIECE_TYPES
+            len(board.pieces(p, not self.color)) * weights[p] for p in chess.PIECE_TYPES
         )
 
-        return 20 * (my_piece_score - opponent_piece_score)/(my_piece_score + opponent_piece_score)
+        return (
+            20
+            * (my_piece_score - opponent_piece_score)
+            / (my_piece_score + opponent_piece_score)
+        )
 
     def __str__(self) -> str:
         return self.name
