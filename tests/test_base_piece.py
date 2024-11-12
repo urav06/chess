@@ -27,13 +27,7 @@ class BaseTestPiece(unittest.TestCase):
         calculated: Optional[Generator[Move, None, None]] = None,
         piece: Optional[tuple[Piece, Location]] = None
     ) -> None:
-        if calculated:
-            calculated_set = set(calculated)
-        if piece:
-            calculated_set = set(calculated
-                                 or
-                                 self.game.legal_moves(color=piece[0][0], piece=piece)
-                                 )
+        calculated_set = set(calculated or self.game.legal_moves(color=piece[0][0], piece=piece))
         if calculated_set:
             self.assertSetEqual(
                 expected, calculated_set,

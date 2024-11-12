@@ -25,8 +25,7 @@ class MinMaxBot(BaseBot):
                 game.seek_move(move), depth=self.max_depth, a=float("-inf"), b=float("inf")
             )
             scored_moves.append((move, score))
-            if score > best_score:
-                best_score = score
+            best_score = max(best_score, score)
         return random.choice([move for move, score in scored_moves if score == best_score])
 
     def leaf_node_heuristics(self, game: Game) -> float:
