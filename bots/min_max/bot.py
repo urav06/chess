@@ -81,4 +81,3 @@ class MinMaxBot(BaseBot):
 
     def __str__(self) -> str:
         return self.name
- 
