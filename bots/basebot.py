@@ -2,7 +2,6 @@
 Module defining the Base Bot.
 """
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from engine import Color, Game, Move
 
@@ -18,13 +17,13 @@ class BaseBot(ABC):
         self.move_count: int = 0
 
     @abstractmethod
-    def select_move(self, game: Game) -> Optional[Move]:
+    def select_move(self, game: Game) -> Move:
         """
         Selects a move that this bot will play from the given game.
         """
         if game.active_color != self.color:
             raise RuntimeError(f"It's not my turn yet. I'm playing as {str(self.color).lower()}.")
-        return None
+        return next(game.legal_moves())
 
     def display_time_taken(self) -> None:
         print(f"{self.name} took {round(self.clock, 5)}s.")

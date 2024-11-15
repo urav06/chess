@@ -15,6 +15,6 @@ class RandomBot(BaseBot):
         super().__init__(color)
         self.name = name or self.name
 
-    def select_move(self, game: Game) -> Optional[Move]:
+    def select_move(self, game: Game) -> Move:
         super().select_move(game)
         return random.choice(list(game.legal_moves(color=self.color)))

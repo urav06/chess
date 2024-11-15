@@ -15,7 +15,7 @@ class MinMaxBot(BaseBot):
         self.max_depth = max_depth
         self.name = name or f"{self.name}_d{max_depth}"
 
-    def select_move(self, game: Game) -> Optional[Move]:
+    def select_move(self, game: Game) -> Move:
         super().select_move(game)
         moves = game.legal_moves(color=self.color)
         scored_moves: list[tuple[Move, float]]  = []
